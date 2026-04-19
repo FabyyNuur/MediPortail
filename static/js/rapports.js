@@ -194,14 +194,22 @@
       document.querySelectorAll(".tab-btn").forEach(function (b) {
         b.classList.remove("border-teal-500", "text-teal-700", "bg-teal-50/50");
         b.classList.add("border-transparent", "text-slate-500");
+        b.setAttribute("aria-selected", "false");
+        b.setAttribute("tabindex", "-1");
       });
       btn.classList.add("border-teal-500", "text-teal-700", "bg-teal-50/50");
       btn.classList.remove("border-transparent", "text-slate-500");
+      btn.setAttribute("aria-selected", "true");
+      btn.setAttribute("tabindex", "0");
       document.querySelectorAll(".tab-panel").forEach(function (p) {
         p.classList.add("hidden");
+        p.setAttribute("aria-hidden", "true");
       });
       var panel = document.getElementById("panel-" + t);
-      if (panel) panel.classList.remove("hidden");
+      if (panel) {
+        panel.classList.remove("hidden");
+        panel.setAttribute("aria-hidden", "false");
+      }
     });
   });
 

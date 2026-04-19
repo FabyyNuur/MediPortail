@@ -45,10 +45,9 @@
       </div>
     </div>
 
-    <form method="get" action="{{ url_for('patients.patients_list') }}" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <form id="patients-filters" method="get" action="{{ url_for('patients.patients_list') }}" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="flex items-center gap-3 px-5 py-3 border-b border-slate-100 bg-slate-50/50">
         <span class="text-sm text-slate-600">Recherche &amp; Filtres</span>
-        <button type="submit" class="ml-auto text-xs bg-teal-600 text-white px-3 py-1.5 rounded-lg">Filtrer</button>
       </div>
       <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
         <input type="hidden" name="sort" value="{{ sort_key }}">
@@ -134,4 +133,25 @@
     </div>
   </main>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var f = document.getElementById("patients-filters");
+  if (!f) return;
+  f.addEventListener("change", function (e) {
+    if (e.target && e.target.matches && e.target.matches("select")) f.submit();
+  });
+  var search = f.querySelector('input[name="search"]');
+  if (search) {
+    var t;
+    search.addEventListener("input", function () {
+      clearTimeout(t);
+      t = setTimeout(function () {
+        f.submit();
+      }, 450);
+    });
+  }
+})();
+</script>
 {% endblock %}

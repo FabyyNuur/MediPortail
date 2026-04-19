@@ -64,12 +64,11 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
     {# Filtres #}
-    <form method="get" action="{{ url_for('main.dashboard') }}" class="bg-white rounded-xl shadow-sm border border-slate-200">
+    <form id="dashboard-filters" method="get" action="{{ url_for('main.dashboard') }}" class="bg-white rounded-xl shadow-sm border border-slate-200">
       <div class="flex flex-wrap items-center gap-3 px-5 py-3.5 border-b border-slate-100 bg-slate-50/60 rounded-t-xl">
         <span class="text-teal-600 flex-shrink-0">{{ ico_filter('w-4 h-4') }}</span>
         <span class="text-sm font-medium text-slate-800">Filtres d'analyse</span>
-        <span class="inline-flex items-center rounded-full bg-teal-50 text-teal-700 border border-teal-100 px-2.5 py-0.5 text-xs font-medium">{% if active_filter_count == 0 %}Aucun filtre actif{% elif active_filter_count == 1 %}1 filtre actif{% else %}{{ active_filter_count }} filtres actifs{% endif %}</span>
-        <button type="submit" class="ml-auto text-xs font-medium bg-teal-600 text-white px-3 py-1.5 rounded-lg hover:bg-teal-700 transition-colors">Appliquer</button>
+        <span class="inline-flex items-center rounded-full bg-teal-50 text-teal-700 border border-teal-100 px-2.5 py-0.5 text-xs font-medium ml-auto">{% if active_filter_count == 0 %}Aucun filtre actif{% elif active_filter_count == 1 %}1 filtre actif{% else %}{{ active_filter_count }} filtres actifs{% endif %}</span>
       </div>
       <div class="p-5 space-y-5 rounded-b-xl">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -79,9 +78,9 @@
               <span class="pointer-events-none pl-3 text-slate-400 flex-shrink-0">{{ ico_calendar('w-5 h-5') }}</span>
               <select name="periode" size="1" class="w-full py-2.5 pr-8 pl-2 text-sm text-slate-700 bg-transparent border-0 rounded-none outline-none cursor-pointer focus:outline-none">
                 <option value="all" {% if selected_periode == 'all' %}selected{% endif %}>Toutes les données</option>
-                <option value="30" {% if selected_periode == '30' %}selected{% endif %}>30 derniers jours</option>
-                <option value="90" {% if selected_periode == '90' %}selected{% endif %}>90 derniers jours</option>
-                <option value="365" {% if selected_periode == '365' %}selected{% endif %}>12 derniers mois</option>
+                <option value="2425" {% if selected_periode == '2425' %}selected{% endif %}>Exercice 2024-2025 (jan. 2024 – déc. 2025)</option>
+                <option value="2024" {% if selected_periode == '2024' %}selected{% endif %}>Année 2024</option>
+                <option value="2025" {% if selected_periode == '2025' %}selected{% endif %}>Année 2025</option>
               </select>
             </div>
           </div>
@@ -209,6 +208,7 @@
         <h3 class="text-slate-900 font-medium">Dynamique des admissions</h3>
         <p class="text-sm text-slate-400 mt-0.5 mb-5">Entrées par jour de la semaine (période filtrée)</p>
         <div style="height:256px"><canvas id="chartAdmissions"></canvas></div>
+        <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.admissions_week }}</p>
       </div>
       <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col">
         <h3 class="text-slate-900 font-medium">Profil démographique</h3>
@@ -221,6 +221,7 @@
           </div>
         </div>
         <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 w-full text-xs text-slate-600" id="ageLegend"></div>
+        <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.age_profile }}</p>
       </div>
     </div>
 
@@ -267,6 +268,7 @@
         <h3 class="text-slate-900 font-medium">Impact financier</h3>
         <p class="text-sm text-slate-400 mt-0.5 mb-5">Coûts cumulés par département</p>
         <div style="height:256px"><canvas id="chartCostDept"></canvas></div>
+        <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.cost_dept }}</p>
       </div>
     </div>
 

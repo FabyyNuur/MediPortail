@@ -92,8 +92,21 @@
     return { min: -0.5, max: n - 0.5 };
   }
 
+  function rapportsPeriodParam() {
+    var el = document.getElementById("rapports-filter-state");
+    if (!el) return "all";
+    try {
+      var o = JSON.parse(el.textContent);
+      return o.periode || "all";
+    } catch (e) {
+      return "all";
+    }
+  }
+
   function buildQuery() {
     var dept = $("ds-dept");
+    var deptVal = dept && dept.value ? dept.value : "Tous";
+    if (deptVal === "") deptVal = "Tous";
     var sex = $("ds-sex");
     var mal = $("ds-maladie");
     var trait = $("ds-traitement");
@@ -101,7 +114,7 @@
     var ay = $("ds-axis-y");
     return (
       "?dept=" +
-      encodeURIComponent(dept ? dept.value : "Tous") +
+      encodeURIComponent(deptVal) +
       "&sex=" +
       encodeURIComponent(sex ? sex.value : "Tous") +
       "&maladie=" +
@@ -111,7 +124,9 @@
       "&axis_x=" +
       encodeURIComponent(ax ? ax.value : "age") +
       "&axis_y=" +
-      encodeURIComponent(ay ? ay.value : "duree")
+      encodeURIComponent(ay ? ay.value : "duree") +
+      "&periode=" +
+      encodeURIComponent(rapportsPeriodParam())
     );
   }
 
