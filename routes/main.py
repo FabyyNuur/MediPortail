@@ -6,8 +6,6 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from urllib.parse import urlencode
-
 from flask import Blueprint, Response, render_template, request, send_file, url_for
 
 import analytics as an
@@ -17,6 +15,20 @@ _log = logging.getLogger(__name__)
 
 bp = Blueprint("main", __name__)
 
+_CHART_COLORS_5 = ["#0D9488", "#6366F1", "#F59E0B", "#EC4899", "#06B6D4"]
+_CHART_COLORS_7 = _CHART_COLORS_5 + ["#10B981", "#8B5CF6"]
+
+
+def _admissions_year_span_label(df) -> str:
+    """Années min–max sur DateAdmission (libellé court KPI / intro maquette)."""
+    if df.empty:
+        return "—"
+    da = df["DateAdmission"].dropna()
+    if da.empty:
+        return "—"
+    y1, y2 = int(da.dt.year.min()), int(da.dt.year.max())
+    return f"{y1}–{y2}" if y1 != y2 else str(y1)
+
 
 def _hero_stats(filtered) -> list[dict]:
     if filtered.empty:
@@ -25,12 +37,7 @@ def _hero_stats(filtered) -> list[dict]:
             {"label": "Départements", "value": "0 services", "icon_key": "building"},
             {"label": "Période couverte", "value": "—", "icon_key": "calendar"},
         ]
-    da = filtered["DateAdmission"].dropna()
-    if da.empty:
-        period_str = "—"
-    else:
-        y1, y2 = int(da.dt.year.min()), int(da.dt.year.max())
-        period_str = f"{y1}–{y2}" if y1 != y2 else str(y1)
+    period_str = _admissions_year_span_label(filtered)
     return [
         {"label": "Patients suivis", "value": f"{len(filtered):,}".replace(",", " "), "icon_key": "users"},
         {"label": "Départements", "value": f"{filtered['Departement'].nunique()} services", "icon_key": "building"},
@@ -56,37 +63,39 @@ def _parse_filter_arg(name: str) -> list[str] | None:
     return [v]
 
 
+_PERIOD_ALLOWED = frozenset({"all", "2425", "2024", "2025", "30", "90", "365"})
+
+
 def _period_arg() -> str:
     v = (request.args.get("periode") or "all").strip()
-    return v if v in ("30", "90", "365", "all") else "all"
+    return v if v in _PERIOD_ALLOWED else "all"
 
 
-def _period_label() -> str:
-    return {
-        "30": "30 derniers jours",
-        "90": "90 derniers jours",
-        "365": "365 derniers jours",
-        "all": "Toute la période",
-    }.get(_period_arg(), "Toute la période")
+def _maquette_cover_period_label(df) -> str:
+    """Libellé période (couverture / en-tête) à partir des dates d’admission du fichier."""
+    if df.empty or df["DateAdmission"].isna().all():
+        return "Données sans plage datée exploitable"
+    da = df["DateAdmission"].dropna()
+    y1, y2 = int(da.dt.year.min()), int(da.dt.year.max())
+    if y1 == y2:
+        return f"Année {y1} (admissions datées)"
+    return f"{y1} – {y2} (admissions datées)"
 
 
-def _dept_maquette_label() -> str:
-    v = (request.args.get("dept") or "").strip()
-    return v if v else "Tous les départements"
+def _maquette_cover_dept_label(df) -> str:
+    """Libellé services pour la couverture (données complètes du fichier)."""
+    if df.empty:
+        return "—"
+    n = int(df["Departement"].nunique())
+    return f"Tous les départements ({n} services)"
 
 
 def _absolute_maquette_pdf_source_url() -> str:
-    """URL joignable par Playwright pour rendre la même vue que les filtres passés à l’export."""
+    """URL joignable par Playwright : rapport maquette figé (sans paramètres de filtre)."""
     override = (os.environ.get("MAQUETTE_PDF_BASE_URL") or "").rstrip("/")
     base = override if override else request.url_root.rstrip("/")
     path = url_for("main.rapport_maquette", _external=False)
-    params = []
-    for key in ("periode", "sexe", "dept", "maladie", "traitement"):
-        val = (request.args.get(key) or "").strip()
-        if val:
-            params.append((key, val))
-    qs = urlencode(params)
-    return f"{base}{path}?{qs}" if qs else f"{base}{path}"
+    return f"{base}{path}"
 
 
 def _active_filter_count() -> int:
@@ -100,6 +109,46 @@ def _active_filter_count() -> int:
     return n
 
 
+def _rapports_active_filter_count() -> int:
+    """Filtres page Rapports (période + département)."""
+    n = 0
+    if _period_arg() != "all":
+        n += 1
+    if (request.args.get("dept") or "").strip():
+        n += 1
+    return n
+
+
+def _rapports_maquette_url() -> str:
+    """URL du rapport maquette (vue consolidée, indépendante des filtres de la page Rapports)."""
+    return url_for("main.rapport_maquette")
+
+
+def _rapport_maquette_intro_context(df) -> dict:
+    """Métadonnées d’introduction du rapport maquette (jeu complet du fichier CSV)."""
+    from config import get_data_path
+
+    data_file = Path(get_data_path()).name
+    if df.empty:
+        return {
+            "data_file": data_file,
+            "total_n": 0,
+            "n_dept": 0,
+            "n_mal": 0,
+            "n_trait": 0,
+            "period_str": "—",
+        }
+    period_str = _admissions_year_span_label(df)
+    return {
+        "data_file": data_file,
+        "total_n": len(df),
+        "n_dept": int(df["Departement"].nunique()),
+        "n_mal": int(df["Maladie"].nunique()),
+        "n_trait": int(df["Traitement"].nunique()),
+        "period_str": period_str,
+    }
+
+
 @bp.route("/")
 def dashboard():
     raw = an.get_prepared_dataframe()
@@ -110,7 +159,6 @@ def dashboard():
     trait = _parse_filter_arg("traitement")
     filtered = an.filter_dataframe(df, sexe, dept, mal, trait)
     opts = _filter_lists()
-    chart_colors = ["#0D9488", "#6366F1", "#F59E0B", "#EC4899", "#06B6D4"]
     ctx = {
         "kpis": an.dashboard_kpis(filtered),
         "metrics": an.summary_metrics(filtered),
@@ -130,16 +178,19 @@ def dashboard():
         "generated_at": datetime.now(),
         "total_patients": len(filtered),
         "n_depts": filtered["Departement"].nunique() if not filtered.empty else 0,
-        "chart_colors": chart_colors,
+        "chart_colors": _CHART_COLORS_5,
         "hero_stats": _hero_stats(filtered),
+        "chart_captions": an.chart_captions_dashboard(filtered),
     }
     return render_template("dashboard.html", **ctx)
 
 
 @bp.route("/rapports")
 def rapports():
-    df = an.get_prepared_dataframe()
-    filtered = an.filter_dataframe(df, None, None, None, None)
+    raw = an.get_prepared_dataframe()
+    df = an.apply_period_filter(raw, _period_arg())
+    dept_arg = _parse_filter_arg("dept")
+    filtered = an.filter_dataframe(df, None, dept_arg, None, None)
     return render_template(
         "rapports.html",
         hero_stats=_hero_stats(filtered),
@@ -155,39 +206,40 @@ def rapports():
         insight_demo=an.insight_demographie(filtered),
         age_groups=an.age_groups_design(filtered),
         total_n=len(filtered),
-        departments=sorted(df["Departement"].unique().tolist()),
-        maladies=sorted(df["Maladie"].unique().tolist()),
-        traitements=sorted(df["Traitement"].unique().tolist()),
-        chart_colors=["#0D9488", "#6366F1", "#F59E0B", "#EC4899", "#06B6D4", "#10B981", "#8B5CF6"],
+        departments=sorted(raw["Departement"].unique().tolist()),
+        maladies=sorted(raw["Maladie"].unique().tolist()),
+        traitements=sorted(raw["Traitement"].unique().tolist()),
+        chart_colors=_CHART_COLORS_7,
+        chart_captions=an.chart_captions_rapports(filtered),
+        selected_periode=_period_arg(),
+        selected_dept=(request.args.get("dept") or "").strip(),
+        active_filter_count=_rapports_active_filter_count(),
+        maquette_url=_rapports_maquette_url(),
     )
 
 
 @bp.route("/rapport/maquette")
 def rapport_maquette():
-    """Rapport analytique mise en page A4 (aperçu HTML + impression navigateur)."""
-    raw = an.get_prepared_dataframe()
-    df = an.apply_period_filter(raw, _period_arg())
-    sexe = _parse_filter_arg("sexe")
-    dept = _parse_filter_arg("dept")
-    mal = _parse_filter_arg("maladie")
-    trait = _parse_filter_arg("traitement")
-    filtered = an.filter_dataframe(df, sexe, dept, mal, trait)
+    """Rapport analytique A4 : toujours calculé sur l’ensemble du fichier (sans filtres d’URL)."""
+    data = an.get_prepared_dataframe()
+    period_cover = _maquette_cover_period_label(data)
+    dept_cover = _maquette_cover_dept_label(data)
 
     sheets, extras = build_maquette_sheets(
-        filtered,
-        period_label=_period_label(),
-        dept_label=_dept_maquette_label(),
+        data,
+        period_label=period_cover,
+        dept_label=dept_cover,
     )
-    chart_colors = ["#0D9488", "#6366F1", "#F59E0B", "#EC4899", "#06B6D4", "#10B981", "#8B5CF6"]
     return render_template(
         "report_maquette.html",
         sheets=sheets,
         total_pages=len(sheets),
         generated_date=format_generated_date_long(),
-        period_display=_period_label(),
-        dept_display=_dept_maquette_label(),
+        period_display=period_cover,
+        dept_display=dept_cover,
         maquette_extras=extras,
-        chart_colors=chart_colors,
+        chart_colors=_CHART_COLORS_7,
+        rapport_intro=_rapport_maquette_intro_context(data),
     )
 
 

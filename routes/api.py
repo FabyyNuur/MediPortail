@@ -9,10 +9,18 @@ bp = Blueprint("api", __name__, url_prefix="/api")
 
 ALLOWED_AXES = frozenset({"age", "duree", "risque", "douleur", "maladie", "traitement", "service"})
 
+_PERIOD_API = frozenset({"all", "2425", "2024", "2025", "30", "90", "365"})
+
+
+def _api_period_arg() -> str:
+    v = (request.args.get("periode") or "all").strip()
+    return v if v in _PERIOD_API else "all"
+
 
 @bp.route("/decision-support")
 def decision_support():
-    df = an.get_prepared_dataframe()
+    raw = an.get_prepared_dataframe()
+    df = an.apply_period_filter(raw, _api_period_arg())
     dept = request.args.get("dept", "Tous")
     sex = request.args.get("sex", "Tous")
     maladie = request.args.get("maladie", "Toutes")

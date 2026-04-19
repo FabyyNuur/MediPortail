@@ -133,38 +133,369 @@ ico_users(cls) %}<svg
           {% endfor %}
         </div>
       </div>
+      <div
+        class="mt-8 flex flex-wrap justify-end items-center gap-3 w-full"
+        role="group"
+        aria-label="Rapport maquette"
+      >
+        <a
+          href="{{ maquette_url }}"
+          target="_blank"
+          rel="noopener"
+          class="inline-flex items-center justify-center gap-2.5 min-h-[3rem] px-6 py-3 rounded-xl text-base font-semibold bg-teal-600 text-white shadow-md shadow-teal-900/15 hover:bg-teal-700 transition-colors"
+        >
+          <svg
+            class="w-5 h-5 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+            />
+          </svg>
+          Prévisualiser le rapport
+        </a>
+      </div>
     </div>
   </div>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <script type="application/json" id="rapports-filter-state">
+      {{ { 'periode': selected_periode, 'dept': selected_dept } | tojson }}
+    </script>
+    <section
+    class="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden mb-8"
+    id="decision-support-root"
+  >
+    <div
+      class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-teal-950 to-blue-450 px-6 py-8 md:py-10"
+    >
+      <div
+        class="absolute inset-0 opacity-[0.07]"
+        style="
+          background-image:
+            linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+            linear-gradient(
+              90deg,
+              rgba(255, 255, 255, 0.5) 1px,
+              transparent 1px
+            );
+          background-size: 32px 32px;
+        "
+      ></div>
+      <div
+        class="absolute -top-16 right-0 w-72 h-72 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"
+      ></div>
+      <div
+        class="relative flex flex-col md:flex-row md:items-start gap-6 md:gap-8"
+      >
+        <div
+          class="flex-shrink-0 w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] rounded-full bg-teal-500/25 border border-teal-400/35 flex items-center justify-center backdrop-blur-sm shadow-inner"
+        >
+          <svg
+            class="w-9 h-9 text-teal-100"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M12 4C8.5 4 6 7 6 10.5c0 2 1 3.5 2.5 4.5v3.5a1.5 1.5 0 003 0V18M12 4c3.5 0 6 3 6 6.5 0 2-1 3.5-2.5 4.5v3.5a1.5 1.5 0 01-3 0V18"
+            />
+            <circle cx="9" cy="9" r="1.2" fill="currentColor" stroke="none" />
+            <circle
+              cx="15"
+              cy="9"
+              r="1.2"
+              fill="currentColor"
+              stroke="none"
+            />
+            <path stroke-linecap="round" stroke-width="1.5" d="M9 13h6" />
+          </svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <h2 class="text-white text-xl md:text-2xl font-bold tracking-tight">
+            Aide à la Décision &amp; Corrélations
+          </h2>
+          <p class="text-sky-100/85 text-sm mt-3 max-w-3xl leading-relaxed">
+            Analyse de l’impact des facteurs cliniques sur la durée de séjour
+            et le risque.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 lg:p-8 bg-slate-50/70 border-t border-slate-100">
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        <div class="xl:col-span-3 space-y-6">
+          <div
+            class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm"
+          >
+            <div class="flex items-center gap-2 mb-5 text-violet-600">
+              <svg
+                class="w-5 h-5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                />
+              </svg>
+              <h3 class="font-semibold text-slate-900 text-sm">
+                Filtres croisés
+              </h3>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label
+                  class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5"
+                  >Service</label
+                >
+                <select
+                  id="ds-dept"
+                  size="1"
+                  class="select-dropdown w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
+                >
+                  <option value="" {% if not selected_dept %}selected{% endif %}>Tous les services</option>
+                  {% for d in departments %}
+                  <option value="{{ d }}" {% if d == selected_dept %}selected{% endif %}>{{ d }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label
+                  class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5"
+                  >Sexe</label
+                >
+                <select
+                  id="ds-sex"
+                  size="1"
+                  class="select-dropdown w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
+                >
+                  <option value="Tous">Tous</option>
+                  <option value="Hommes">Hommes</option>
+                  <option value="Femmes">Femmes</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5"
+                  >Maladie (dominante)</label
+                >
+                <select
+                  id="ds-maladie"
+                  size="1"
+                  class="select-dropdown w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
+                >
+                  <option value="Toutes">Toutes les maladies</option>
+                  {% for m in maladies %}
+                  <option value="{{ m }}">{{ m }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label
+                  class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5"
+                  >Traitement</label
+                >
+                <select
+                  id="ds-traitement"
+                  size="1"
+                  class="select-dropdown w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
+                >
+                  <option value="Tous">Tous les traitements</option>
+                  {% for t in traitements %}
+                  <option value="{{ t }}">{{ t }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="relative rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50/80 p-5 shadow-sm overflow-hidden"
+          >
+            <svg
+              class="absolute -right-2 -top-2 w-28 h-28 text-emerald-200/50 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1"
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+              />
+            </svg>
+            <div class="relative">
+              <div class="flex items-center gap-2 text-teal-700 mb-4">
+                <svg
+                  class="w-5 h-5 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                  />
+                </svg>
+                <h3 class="font-semibold text-slate-900 text-sm">
+                  Interprétation
+                </h3>
+              </div>
+              <ul id="ds-insights-list" class="space-y-3 min-h-[4rem]"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="xl:col-span-9 bg-white rounded-xl border border-slate-200 shadow-sm p-5 md:p-6"
+        >
+          <div
+            class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5"
+          >
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <span class="text-slate-600 font-medium">Visualisation :</span>
+              <select
+                id="ds-axis-x"
+                class="rounded-lg border border-slate-200 bg-white py-2 px-3 text-sm text-slate-800 shadow-sm focus:ring-2 focus:ring-teal-100 focus:border-teal-400 outline-none"
+              >
+                <option value="age" selected>Âge</option>
+                <option value="duree">Durée</option>
+                <option value="risque">Risque</option>
+                <option value="douleur">Douleur (proxy)</option>
+                <option value="maladie">Maladie</option>
+                <option value="traitement">Traitement</option>
+                <option value="service">Service</option>
+              </select>
+              <span class="text-slate-400 px-0.5">vs</span>
+              <select
+                id="ds-axis-y"
+                class="rounded-lg border border-slate-200 bg-white py-2 px-3 text-sm text-slate-800 shadow-sm focus:ring-2 focus:ring-teal-100 focus:border-teal-400 outline-none"
+              >
+                <option value="age">Âge</option>
+                <option value="duree" selected>Durée</option>
+                <option value="risque">Risque</option>
+                <option value="douleur">Douleur (proxy)</option>
+                <option value="maladie">Maladie</option>
+                <option value="traitement">Traitement</option>
+                <option value="service">Service</option>
+              </select>
+            </div>
+            <div
+              class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-600"
+            >
+              <span class="inline-flex items-center gap-2"
+                ><span
+                  class="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-sm"
+                ></span>
+                Risque élevé</span
+              >
+              <span class="inline-flex items-center gap-2"
+                ><span
+                  class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm"
+                ></span>
+                Modéré</span
+              >
+              <span class="inline-flex items-center gap-2"
+                ><span
+                  class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"
+                ></span>
+                Faible</span
+              >
+            </div>
+          </div>
+          <div class="relative w-full min-h-[420px] lg:min-h-[480px]">
+            <canvas id="chartScatter"></canvas>
+          </div>
+          <div
+            class="mt-5 flex flex-col md:flex-row md:justify-between gap-3 text-xs text-slate-500 border-t border-slate-100 pt-4 leading-relaxed"
+          >
+            <p>
+              La taille des bulles représente le
+              <strong class="text-slate-700">niveau de douleur (1–10)</strong
+              >.
+            </p>
+            <p class="md:text-right md:max-w-md">
+              Couleur :
+              <strong class="text-rose-500">Risque &gt; 75%</strong> (rose),
+              <strong class="text-amber-600">&gt; 40%</strong> (jaune),
+              <strong class="text-emerald-600">≤ 40%</strong> (vert).
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+   
     <div
       class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
     >
-      <div class="flex border-b border-slate-100" role="tablist">
+      <div class="flex border-b border-slate-100" role="tablist" aria-label="Sections du rapport">
         <button
           type="button"
+          role="tab"
+          id="tab-activite"
           data-tab="activite"
+          aria-selected="true"
+          aria-controls="panel-activite"
+          tabindex="0"
           class="tab-btn flex items-center gap-2 px-6 py-4 text-sm flex-1 justify-center border-b-2 border-teal-500 text-teal-700 bg-teal-50/50"
         >
           Activité clinique
         </button>
         <button
           type="button"
+          role="tab"
+          id="tab-finances"
           data-tab="finances"
+          aria-selected="false"
+          aria-controls="panel-finances"
+          tabindex="-1"
           class="tab-btn flex items-center gap-2 px-6 py-4 text-sm flex-1 justify-center border-b-2 border-transparent text-slate-500 hover:bg-slate-50"
         >
           Finances
         </button>
         <button
           type="button"
+          role="tab"
+          id="tab-demographie"
           data-tab="demographie"
+          aria-selected="false"
+          aria-controls="panel-demographie"
+          tabindex="-1"
           class="tab-btn flex items-center gap-2 px-6 py-4 text-sm flex-1 justify-center border-b-2 border-transparent text-slate-500 hover:bg-slate-50"
         >
           Démographie
         </button>
       </div>
       <div class="p-6">
-        <div id="panel-activite" class="tab-panel space-y-6">
+        <div id="panel-activite" role="tabpanel" aria-labelledby="tab-activite" aria-hidden="false" class="tab-panel space-y-6">
           <div
             class="bg-gradient-to-r from-teal-50 to-indigo-50 border border-teal-100 rounded-2xl p-4 flex items-start gap-3 shadow-sm"
           >
@@ -190,6 +521,7 @@ ico_users(cls) %}<svg
             <div style="height: 288px">
               <canvas id="chartMonthlyAS"></canvas>
             </div>
+            <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.monthly_flux }}</p>
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div
@@ -197,16 +529,18 @@ ico_users(cls) %}<svg
             >
               <h3 class="text-slate-800">Top pathologies</h3>
               <div style="height: 256px"><canvas id="chartPatho"></canvas></div>
+              <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.patho }}</p>
             </div>
             <div
               class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm"
             >
               <h3 class="text-slate-800">Durée moy. de séjour</h3>
               <div style="height: 256px"><canvas id="chartStay"></canvas></div>
+              <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.stay }}</p>
             </div>
           </div>
         </div>
-        <div id="panel-finances" class="tab-panel hidden space-y-6">
+        <div id="panel-finances" role="tabpanel" aria-labelledby="tab-finances" aria-hidden="true" class="tab-panel hidden space-y-6">
           <div
             class="bg-gradient-to-r from-teal-50 to-indigo-50 border border-teal-100 rounded-2xl p-4"
           >
@@ -217,6 +551,7 @@ ico_users(cls) %}<svg
           >
             <h3 class="text-slate-800">Évolution des coûts</h3>
             <div style="height: 288px"><canvas id="chartCosts"></canvas></div>
+            <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.monthly_costs }}</p>
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div
@@ -226,11 +561,12 @@ ico_users(cls) %}<svg
               <div style="height: 256px">
                 <canvas id="chartCostBar"></canvas>
               </div>
+              <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.cost_bar }}</p>
             </div>
             <div
               class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm"
             >
-              <h3 class="text-slate-800">Synthèse</h3>
+              <h3 class="text-slate-800">Synthèse exécutive</h3>
               <div class="space-y-3 mt-4">
                 {% for row in report_rows %}
                 <div
@@ -250,7 +586,7 @@ ico_users(cls) %}<svg
             </div>
           </div>
         </div>
-        <div id="panel-demographie" class="tab-panel hidden space-y-6">
+        <div id="panel-demographie" role="tabpanel" aria-labelledby="tab-demographie" aria-hidden="true" class="tab-panel hidden space-y-6">
           <div
             class="bg-gradient-to-r from-teal-50 to-indigo-50 border border-teal-100 rounded-2xl p-4"
           >
@@ -270,6 +606,7 @@ ico_users(cls) %}<svg
                   <p class="text-slate-400 text-xs">patients</p>
                 </div>
               </div>
+              <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.demo_age }}</p>
             </div>
             <div
               class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm"
@@ -278,13 +615,14 @@ ico_users(cls) %}<svg
               <div style="height: 192px">
                 <canvas id="chartGender"></canvas>
               </div>
+              <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.gender }}</p>
             </div>
             <div
               class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm"
             >
               <h3 class="text-slate-800">Indicateurs</h3>
-              <p class="text-xs text-slate-500 mt-2">
-                Âge moyen (échantillon) : voir données CSV.
+              <p class="text-sm text-slate-600 leading-relaxed mt-2">
+                {{ chart_captions.demo_summary }}
               </p>
             </div>
           </div>
@@ -295,359 +633,13 @@ ico_users(cls) %}<svg
             <div style="height: 256px">
               <canvas id="chartStayDemo"></canvas>
             </div>
+            <p class="text-sm text-slate-600 leading-relaxed mt-4 border-t border-slate-100 pt-4">{{ chart_captions.stay_demo }}</p>
           </div>
         </div>
       </div>
     </div>
 
-    <section
-      class="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden mb-8"
-      id="decision-support-root"
-    >
-      <div
-        class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-teal-950 to-indigo-950 px-6 py-8 md:py-10"
-      >
-        <div
-          class="absolute inset-0 opacity-[0.07]"
-          style="
-            background-image:
-              linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
-              linear-gradient(
-                90deg,
-                rgba(255, 255, 255, 0.5) 1px,
-                transparent 1px
-              );
-            background-size: 32px 32px;
-          "
-        ></div>
-        <div
-          class="absolute -top-16 right-0 w-72 h-72 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"
-        ></div>
-        <div
-          class="relative flex flex-col md:flex-row md:items-start gap-6 md:gap-8"
-        >
-          <div
-            class="flex-shrink-0 w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] rounded-full bg-teal-500/25 border border-teal-400/35 flex items-center justify-center backdrop-blur-sm shadow-inner"
-          >
-            <svg
-              class="w-9 h-9 text-teal-100"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M12 4C8.5 4 6 7 6 10.5c0 2 1 3.5 2.5 4.5v3.5a1.5 1.5 0 003 0V18M12 4c3.5 0 6 3 6 6.5 0 2-1 3.5-2.5 4.5v3.5a1.5 1.5 0 01-3 0V18"
-              />
-              <circle cx="9" cy="9" r="1.2" fill="currentColor" stroke="none" />
-              <circle
-                cx="15"
-                cy="9"
-                r="1.2"
-                fill="currentColor"
-                stroke="none"
-              />
-              <path stroke-linecap="round" stroke-width="1.5" d="M9 13h6" />
-            </svg>
-          </div>
-          <div class="min-w-0 flex-1">
-            <h2 class="text-white text-xl md:text-2xl font-bold tracking-tight">
-              Aide à la Décision &amp; Corrélations
-            </h2>
-            <p class="text-sky-100/85 text-sm mt-3 max-w-3xl leading-relaxed">
-              Analyse de l’impact des facteurs cliniques sur la durée de séjour
-              et le risque.
-            </p>
-          </div>
-        </div>
-      </div>
 
-      <div class="p-6 lg:p-8 bg-slate-50/70 border-t border-slate-100">
-        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          <div class="xl:col-span-3 space-y-6">
-            <div
-              class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm"
-            >
-              <div class="flex items-center gap-2 mb-5 text-violet-600">
-                <svg
-                  class="w-5 h-5 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                  />
-                </svg>
-                <h3 class="font-semibold text-slate-900 text-sm">
-                  Filtres croisés
-                </h3>
-              </div>
-              <div class="space-y-4">
-                <div>
-                  <label
-                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5"
-                    >Service</label
-                  >
-                  <select
-                    id="ds-dept"
-                    size="1"
-                    class="select-dropdown w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
-                  >
-                    <option value="Tous">Tous les services</option>
-                    {% for d in departments %}
-                    <option value="{{ d }}">{{ d }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div>
-                  <label
-                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5"
-                    >Sexe</label
-                  >
-                  <select
-                    id="ds-sex"
-                    size="1"
-                    class="select-dropdown w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
-                  >
-                    <option value="Tous">Tous</option>
-                    <option value="Hommes">Hommes</option>
-                    <option value="Femmes">Femmes</option>
-                  </select>
-                </div>
-                <div>
-                  <label
-                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5"
-                    >Maladie (dominante)</label
-                  >
-                  <select
-                    id="ds-maladie"
-                    size="1"
-                    class="select-dropdown w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
-                  >
-                    <option value="Toutes">Toutes les maladies</option>
-                    {% for m in maladies %}
-                    <option value="{{ m }}">{{ m }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div>
-                  <label
-                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5"
-                    >Traitement</label
-                  >
-                  <select
-                    id="ds-traitement"
-                    size="1"
-                    class="select-dropdown w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400"
-                  >
-                    <option value="Tous">Tous les traitements</option>
-                    {% for t in traitements %}
-                    <option value="{{ t }}">{{ t }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="relative rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50/80 p-5 shadow-sm overflow-hidden"
-            >
-              <svg
-                class="absolute -right-2 -top-2 w-28 h-28 text-emerald-200/50 pointer-events-none"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1"
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                />
-              </svg>
-              <div class="relative">
-                <div class="flex items-center gap-2 text-teal-700 mb-4">
-                  <svg
-                    class="w-5 h-5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                    />
-                  </svg>
-                  <h3 class="font-semibold text-slate-900 text-sm">
-                    Interprétation IA
-                  </h3>
-                </div>
-                <ul id="ds-insights-list" class="space-y-3 min-h-[4rem]"></ul>
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="xl:col-span-9 bg-white rounded-xl border border-slate-200 shadow-sm p-5 md:p-6"
-          >
-            <div
-              class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5"
-            >
-              <div class="flex flex-wrap items-center gap-2 text-sm">
-                <span class="text-slate-600 font-medium">Visualisation :</span>
-                <select
-                  id="ds-axis-x"
-                  class="rounded-lg border border-slate-200 bg-white py-2 px-3 text-sm text-slate-800 shadow-sm focus:ring-2 focus:ring-teal-100 focus:border-teal-400 outline-none"
-                >
-                  <option value="age" selected>Âge</option>
-                  <option value="duree">Durée</option>
-                  <option value="risque">Risque</option>
-                  <option value="douleur">Douleur (proxy)</option>
-                  <option value="maladie">Maladie</option>
-                  <option value="traitement">Traitement</option>
-                  <option value="service">Service</option>
-                </select>
-                <span class="text-slate-400 px-0.5">vs</span>
-                <select
-                  id="ds-axis-y"
-                  class="rounded-lg border border-slate-200 bg-white py-2 px-3 text-sm text-slate-800 shadow-sm focus:ring-2 focus:ring-teal-100 focus:border-teal-400 outline-none"
-                >
-                  <option value="age">Âge</option>
-                  <option value="duree" selected>Durée</option>
-                  <option value="risque">Risque</option>
-                  <option value="douleur">Douleur (proxy)</option>
-                  <option value="maladie">Maladie</option>
-                  <option value="traitement">Traitement</option>
-                  <option value="service">Service</option>
-                </select>
-              </div>
-              <div
-                class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-600"
-              >
-                <span class="inline-flex items-center gap-2"
-                  ><span
-                    class="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-sm"
-                  ></span>
-                  Risque élevé</span
-                >
-                <span class="inline-flex items-center gap-2"
-                  ><span
-                    class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm"
-                  ></span>
-                  Modéré</span
-                >
-                <span class="inline-flex items-center gap-2"
-                  ><span
-                    class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"
-                  ></span>
-                  Faible</span
-                >
-              </div>
-            </div>
-            <div class="relative w-full min-h-[420px] lg:min-h-[480px]">
-              <canvas id="chartScatter"></canvas>
-            </div>
-            <div
-              class="mt-5 flex flex-col md:flex-row md:justify-between gap-3 text-xs text-slate-500 border-t border-slate-100 pt-4 leading-relaxed"
-            >
-              <p>
-                La taille des bulles représente le
-                <strong class="text-slate-700">niveau de douleur (1–10)</strong
-                >.
-              </p>
-              <p class="md:text-right md:max-w-md">
-                Couleur :
-                <strong class="text-rose-500">Risque &gt; 75%</strong> (rose),
-                <strong class="text-amber-600">&gt; 40%</strong> (jaune),
-                <strong class="text-emerald-600">≤ 40%</strong> (vert).
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-      <div
-        class="flex flex-col lg:flex-row lg:items-start justify-between gap-6"
-      >
-        <div class="max-w-xl">
-          <h3 class="text-slate-800">Générer un export</h3>
-          <p class="text-xs text-slate-500 mt-2">
-            Le téléchargement PDF maquette nécessite
-            <strong class="text-slate-600">playwright</strong> et Chromium sur
-            le serveur (<code class="text-xs">pip install playwright</code> puis
-            <code class="text-xs">playwright install chromium</code>).
-          </p>
-        </div>
-        <div
-          class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 flex-shrink-0"
-        >
-          <a
-            href="{{ url_for('main.rapport_maquette') }}"
-            target="_blank"
-            rel="noopener"
-            class="inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-md transition-colors"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              />
-            </svg>
-            Prévisualiser le rapport
-          </a>
-          <a
-            href="{{ url_for('main.export_csv') }}"
-            download="rapport_hospitalier.csv"
-            rel="noopener"
-            class="export-blob-link inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-md transition-colors"
-            data-download-filename="rapport_hospitalier.csv"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-            Export CSV
-          </a>
-        </div>
-      </div>
-    </div>
   </main>
 </div>
 <script type="application/json" id="rapports-data">
@@ -662,7 +654,8 @@ ico_users(cls) %}<svg
     'chart_colors': chart_colors
   } | tojson }}
 </script>
-{% endblock %} {% block scripts %}
+{% endblock %}
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/rapports.js') }}"></script>
 <script src="{{ url_for('static', filename='js/decision_support.js') }}"></script>
 {% endblock %}
