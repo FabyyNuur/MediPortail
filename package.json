@@ -1,0 +1,11 @@
+{
+  "name": "mediportail",
+  "private": true,
+  "scripts": {
+    "build:css": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./static/css/app.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.12",
+    "tailwindcss": "^4.1.12"
+  }
+}

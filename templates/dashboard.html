@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord{% endblock %}
+
+{# Icônes SVG type Heroicons (outline) — pas d’emojis #}
+{% macro ico_users(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>{% endmacro %}
+{% macro ico_building(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>{% endmacro %}
+{% macro ico_calendar(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>{% endmacro %}
+{% macro ico_stethoscope(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>{% endmacro %}
+{% macro ico_wallet(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>{% endmacro %}
+{% macro ico_alert_circle(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{% endmacro %}
+{% macro ico_lightning(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>{% endmacro %}
+{% macro ico_bell(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>{% endmacro %}
+{% macro ico_download(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>{% endmacro %}
+{% macro ico_filter(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>{% endmacro %}
+{% macro ico_trend_up(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>{% endmacro %}
+{% macro ico_trend_down(cls) %}<svg class="{{ cls }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"/></svg>{% endmacro %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-full">
+  {# En-tête sombre : dégradé, grille, halos — comme prototype Dash / maquette #}
+  <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-teal-950 to-indigo-950 py-14 px-4 sm:px-6 lg:px-8">
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+      <div class="absolute -top-24 -left-24 w-[28rem] h-[28rem] bg-teal-500/15 rounded-full blur-3xl"></div>
+      <div class="absolute top-8 right-0 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 left-1/3 w-96 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute inset-0 opacity-[0.04]" style="background-image:linear-gradient(rgba(255,255,255,.55) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.55) 1px,transparent 1px);background-size:40px 40px"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10">
+        <div class="max-w-2xl">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="inline-flex items-center gap-2 text-xs text-teal-300/95 bg-teal-950/50 border border-teal-700/40 px-3 py-1.5 rounded-full backdrop-blur-sm">
+              <span class="w-1.5 h-1.5 bg-teal-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(45,212,191,0.8)]"></span>
+              Prototype visuel — MediPortail
+            </span>
+          </div>
+          <h1 class="text-white mb-3 font-semibold tracking-tight" style="font-size:2rem;line-height:1.25">
+            Portail Analytique <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-cyan-400">Hospitalier</span>
+          </h1>
+          <p class="text-slate-400 max-w-xl text-sm leading-relaxed">
+            Explorez les données cliniques et financières. Filtrez par département, période et pathologie pour générer des analyses ciblées.
+          </p>
+        </div>
+        <div class="grid grid-cols-3 gap-3 lg:max-w-xl w-full shrink-0">
+          {% for s in hero_stats %}
+          <div class="rounded-xl bg-white/[0.06] backdrop-blur-md border border-white/10 px-3 py-4 text-center shadow-lg shadow-black/20">
+            <div class="flex justify-center mb-2.5">
+              {% if s.icon_key == 'building' %}
+              <span class="text-rose-400">{{ ico_building('w-6 h-6') }}</span>
+              {% elif s.icon_key == 'calendar' %}
+              <span class="text-amber-400">{{ ico_calendar('w-6 h-6') }}</span>
+              {% else %}
+              <span class="text-sky-400">{{ ico_users('w-6 h-6') }}</span>
+              {% endif %}
+            </div>
+            <div class="text-white text-base font-semibold tabular-nums tracking-tight">{{ s.value }}</div>
+            <div class="text-slate-500 text-[11px] mt-1 leading-snug">{{ s.label }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    {# Filtres #}
+    <form method="get" action="{{ url_for('main.dashboard') }}" class="bg-white rounded-xl shadow-sm border border-slate-200">
+      <div class="flex flex-wrap items-center gap-3 px-5 py-3.5 border-b border-slate-100 bg-slate-50/60 rounded-t-xl">
+        <span class="text-teal-600 flex-shrink-0">{{ ico_filter('w-4 h-4') }}</span>
+        <span class="text-sm font-medium text-slate-800">Filtres d'analyse</span>
+        <span class="inline-flex items-center rounded-full bg-teal-50 text-teal-700 border border-teal-100 px-2.5 py-0.5 text-xs font-medium">{% if active_filter_count == 0 %}Aucun filtre actif{% elif active_filter_count == 1 %}1 filtre actif{% else %}{{ active_filter_count }} filtres actifs{% endif %}</span>
+        <button type="submit" class="ml-auto text-xs font-medium bg-teal-600 text-white px-3 py-1.5 rounded-lg hover:bg-teal-700 transition-colors">Appliquer</button>
+      </div>
+      <div class="p-5 space-y-5 rounded-b-xl">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Période d'analyse</label>
+            <div class="relative flex items-center rounded-lg border border-slate-200 bg-slate-50 transition-all focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100">
+              <span class="pointer-events-none pl-3 text-slate-400 flex-shrink-0">{{ ico_calendar('w-5 h-5') }}</span>
+              <select name="periode" size="1" class="w-full py-2.5 pr-8 pl-2 text-sm text-slate-700 bg-transparent border-0 rounded-none outline-none cursor-pointer focus:outline-none">
+                <option value="all" {% if selected_periode == 'all' %}selected{% endif %}>Toutes les données</option>
+                <option value="30" {% if selected_periode == '30' %}selected{% endif %}>30 derniers jours</option>
+                <option value="90" {% if selected_periode == '90' %}selected{% endif %}>90 derniers jours</option>
+                <option value="365" {% if selected_periode == '365' %}selected{% endif %}>12 derniers mois</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Département</label>
+            <div class="relative flex items-center rounded-lg border border-slate-200 bg-slate-50 transition-all focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100">
+              <span class="pointer-events-none pl-3 text-slate-400 flex-shrink-0">{{ ico_building('w-5 h-5') }}</span>
+              <select name="dept" size="1" class="w-full py-2.5 pr-8 pl-2 text-sm text-slate-700 bg-transparent border-0 rounded-none outline-none cursor-pointer focus:outline-none">
+                <option value="">Tous les services</option>
+                {% for s in filters.departements %}<option value="{{ s }}" {% if selected_dept == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Pathologie principale</label>
+            <div class="relative flex items-center rounded-lg border border-slate-200 bg-slate-50 transition-all focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100">
+              <span class="pointer-events-none pl-3 text-rose-400 flex-shrink-0">{{ ico_stethoscope('w-5 h-5') }}</span>
+              <select name="maladie" size="1" class="w-full py-2.5 pr-8 pl-2 text-sm text-slate-700 bg-transparent border-0 rounded-none outline-none cursor-pointer focus:outline-none">
+                <option value="">Toutes</option>
+                {% for s in filters.maladies %}<option value="{{ s }}" {% if selected_maladie == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-dashed border-slate-200 pt-5">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Filtres complémentaires</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="text-xs text-slate-500 block mb-2">Sexe</label>
+              <div class="rounded-lg border border-slate-200 bg-white transition-all focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100">
+                <select name="sexe" size="1" class="w-full py-2.5 px-3 text-sm text-slate-700 bg-transparent border-0 rounded-none outline-none cursor-pointer focus:outline-none">
+                  <option value="">Tous</option>
+                  {% for s in filters.sexes %}<option value="{{ s }}" {% if selected_sexe == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs text-slate-500 block mb-2">Traitement</label>
+              <div class="rounded-lg border border-slate-200 bg-white transition-all focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100">
+                <select name="traitement" size="1" class="w-full py-2.5 px-3 text-sm text-slate-700 bg-transparent border-0 rounded-none outline-none cursor-pointer focus:outline-none">
+                  <option value="">Tous</option>
+                  {% for s in filters.traitements %}<option value="{{ s }}" {% if selected_traitement == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    {# Synthèse KPI #}
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+      <div>
+        <h2 class="text-lg font-semibold text-slate-900">Synthèse opérationnelle</h2>
+        <p class="text-sm text-slate-500 mt-0.5">Indicateurs calculés sur la sélection filtrée</p>
+      </div>
+      <time class="text-xs text-slate-400 tabular-nums" datetime="{{ generated_at.isoformat() }}">Mis à jour {{ generated_at.strftime('%d/%m/%Y à %H:%M') }}</time>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {% set k_style = [
+        {'box':'bg-teal-50 border-teal-100 text-teal-600'},
+        {'box':'bg-violet-50 border-violet-100 text-violet-600'},
+        {'box':'bg-amber-50 border-amber-100 text-amber-600'},
+        {'box':'bg-rose-50 border-rose-100 text-rose-600'},
+      ] %}
+      {% for k in kpis %}
+      {% set st = k_style[loop.index0] %}
+      <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-start justify-between gap-3 mb-4">
+          <div class="w-11 h-11 rounded-xl {{ st.box }} border flex items-center justify-center">
+            {% if k.icon_key == 'wallet' %}{{ ico_wallet('w-6 h-6') }}{% elif k.icon_key == 'alert-circle' %}{{ ico_alert_circle('w-6 h-6') }}{% elif k.icon_key == 'heart-pulse' %}{{ ico_stethoscope('w-6 h-6') }}{% else %}{{ ico_users('w-6 h-6') }}{% endif %}
+          </div>
+          <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium border {% if k.is_positive %}bg-emerald-50 text-emerald-700 border-emerald-100{% else %}bg-rose-50 text-rose-600 border-rose-100{% endif %}">
+            {% if k.trend != '—' %}
+              {% if k.trend.strip().startswith('-') %}{{ ico_trend_down('w-3 h-3') }}{% else %}{{ ico_trend_up('w-3 h-3') }}{% endif %}
+            {% endif %}
+            {{ k.trend }}
+          </span>
+        </div>
+        <p class="text-slate-900 font-bold tabular-nums tracking-tight" style="font-size:1.65rem;line-height:1.15">{{ k.value }}</p>
+        <p class="text-slate-500 text-sm mt-1">{{ k.title }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# IA + Alertes #}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50/90 via-slate-50 to-teal-50/80 p-6 flex gap-4 shadow-sm">
+        <div class="w-12 h-12 rounded-full bg-white border border-indigo-100 flex items-center justify-center flex-shrink-0 text-amber-500 shadow-sm">
+          {{ ico_lightning('w-6 h-6') }}
+        </div>
+        <div class="min-w-0">
+          <h3 class="text-slate-900 font-semibold text-base mb-3">Intelligence artificielle &amp; tendances</h3>
+          {% for para in ai_paragraphs %}
+          <p class="text-slate-600 text-sm leading-relaxed {% if not loop.first %}mt-3{% endif %}">{{ para }}</p>
+          {% endfor %}
+          <a href="{{ url_for('main.rapports') }}#decision-support-root" class="inline-flex items-center gap-1 mt-4 text-sm font-medium text-teal-600 hover:text-teal-800">
+            Explorer les corrélations
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+      <div class="rounded-xl border border-rose-100 bg-rose-50/80 p-6 flex gap-4 shadow-sm">
+        <div class="w-12 h-12 rounded-full bg-white border border-rose-100 flex items-center justify-center flex-shrink-0 text-rose-500 shadow-sm">
+          {{ ico_bell('w-6 h-6') }}
+        </div>
+        <div class="min-w-0">
+          <h3 class="text-slate-900 font-semibold text-base mb-3">Alertes critiques</h3>
+          <ul class="space-y-2.5">
+            {% for line in alert_items %}
+            <li class="flex items-start gap-2 text-sm text-rose-700 leading-snug">
+              <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0"></span>
+              <span>{{ line }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    {# Graphiques #}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm lg:col-span-2">
+        <h3 class="text-slate-900 font-medium">Dynamique des admissions</h3>
+        <p class="text-sm text-slate-400 mt-0.5 mb-5">Entrées par jour de la semaine (période filtrée)</p>
+        <div style="height:256px"><canvas id="chartAdmissions"></canvas></div>
+      </div>
+      <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col">
+        <h3 class="text-slate-900 font-medium">Profil démographique</h3>
+        <p class="text-sm text-slate-400 mt-0.5 mb-5">Répartition par tranches d'âge</p>
+        <div class="relative flex-1 flex flex-col items-center justify-center" style="min-height:176px">
+          <canvas id="chartAge"></canvas>
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <p class="text-slate-800 tabular-nums" style="font-size:1.3rem">{{ total_patients }}</p>
+            <p class="text-slate-400 text-xs">patients</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 w-full text-xs text-slate-600" id="ageLegend"></div>
+      </div>
+    </div>
+
+    {# Table + coûts #}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm lg:col-span-2 overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h3 class="text-slate-900 font-medium">Registre des patients</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Dernières admissions (filtré)</p>
+          </div>
+          <a href="{{ url_for('patients.patients_list') }}" class="text-xs text-teal-600 hover:text-teal-800 font-medium">Voir tout →</a>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm whitespace-nowrap">
+            <thead>
+              <tr class="bg-slate-50/80 border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider">
+                <th class="px-6 py-3">ID</th>
+                <th class="px-6 py-3">Patient</th>
+                <th class="px-6 py-3">Service</th>
+                <th class="px-6 py-3">Diagnostic</th>
+                <th class="px-6 py-3">Séjour</th>
+                <th class="px-6 py-3">Statut</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+              {% for p in recent %}
+              <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="px-6 py-4"><span class="font-mono text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{{ p.id }}</span></td>
+                <td class="px-6 py-4"><span class="text-slate-800">{{ p.name }}</span><br><span class="text-xs text-slate-400">{{ p.age }} ans · {% if p.sex == 'M' %}Homme{% else %}Femme{% endif %}</span></td>
+                <td class="px-6 py-4 text-slate-600">{{ p.dept }}</td>
+                <td class="px-6 py-4 text-slate-500 text-sm">{{ p.disease }}</td>
+                <td class="px-6 py-4 text-slate-500">{{ p.stay }}j</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs {% if p.status == 'En cours' %}bg-amber-50 text-amber-600 border border-amber-200{% else %}bg-emerald-50 text-emerald-600 border border-emerald-200{% endif %}">{{ p.status }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+        <h3 class="text-slate-900 font-medium">Impact financier</h3>
+        <p class="text-sm text-slate-400 mt-0.5 mb-5">Coûts cumulés par département</p>
+        <div style="height:256px"><canvas id="chartCostDept"></canvas></div>
+      </div>
+    </div>
+
+
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script type="application/json" id="dashboard-data">{{ {
+  'admissions_week': admissions_week,
+  'age_groups': age_groups,
+  'cost_by_dept': cost_by_dept,
+  'chart_colors': chart_colors
+} | tojson }}</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

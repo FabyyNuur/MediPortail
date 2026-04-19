@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Base Patients{% endblock %}
+{% macro sort_href(col) -%}
+{%- if sort_key == col -%}
+{%- set ndir = 'desc' if sort_dir == 'asc' else 'asc' -%}
+{%- else -%}
+{%- set ndir = 'asc' -%}
+{%- endif -%}
+{{ url_for('patients.patients_list', page=1, search=search, dept=dept, status=status, risk=risk, sort=col, dir=ndir) }}
+{%- endmacro %}
+{% block content %}
+<div>
+  <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+      <div class="absolute -top-10 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:40px 40px"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div>
+        <span class="inline-flex items-center gap-1.5 text-xs text-teal-300 bg-teal-900/50 border border-teal-700/50 px-3 py-1 rounded-full mb-3">Base Patients</span>
+        <h1 class="text-white mb-2" style="font-size:1.9rem;line-height:1.25">Registre des Patients</h1>
+        <p class="text-slate-400" style="line-height:1.7">Consultez, filtrez et exportez la liste complète.</p>
+      </div>
+      <a href="{{ url_for('main.export_csv') }}" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-xl text-sm transition-all self-start"> Exporter CSV</a>
+    </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex items-center gap-4">
+        <span class="text-2xl text-slate-700 font-semibold">{{ stats.total }}</span>
+        <div><p class="text-xs text-slate-500 mt-0.5">Total patients</p></div>
+      </div>
+      <div class="bg-amber-50 rounded-2xl p-4 border border-slate-200 flex items-center gap-4">
+        <span class="text-2xl text-amber-700 font-semibold">{{ stats.en_cours }}</span>
+        <p class="text-xs text-slate-500 mt-0.5">En cours</p>
+      </div>
+      <div class="bg-emerald-50 rounded-2xl p-4 border border-slate-200 flex items-center gap-4">
+        <span class="text-2xl text-emerald-700 font-semibold">{{ stats.sortis }}</span>
+        <p class="text-xs text-slate-500 mt-0.5">Sortis</p>
+      </div>
+      <div class="bg-rose-50 rounded-2xl p-4 border border-slate-200 flex items-center gap-4">
+        <span class="text-2xl text-rose-700 font-semibold">{{ stats.critiques }}</span>
+        <p class="text-xs text-slate-500 mt-0.5">Séjour ≥ 10 j</p>
+      </div>
+    </div>
+
+    <form method="get" action="{{ url_for('patients.patients_list') }}" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="flex items-center gap-3 px-5 py-3 border-b border-slate-100 bg-slate-50/50">
+        <span class="text-sm text-slate-600">Recherche &amp; Filtres</span>
+        <button type="submit" class="ml-auto text-xs bg-teal-600 text-white px-3 py-1.5 rounded-lg">Filtrer</button>
+      </div>
+      <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input type="hidden" name="sort" value="{{ sort_key }}">
+        <input type="hidden" name="dir" value="{{ sort_dir }}">
+        <div class="md:col-span-1">
+          <input type="text" name="search" value="{{ search }}" placeholder="Nom, ID ou diagnostic…" class="w-full bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100">
+        </div>
+        <div>
+          <select name="dept" class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-2.5 px-3 rounded-lg text-sm">
+            {% for d in depts %}<option value="{{ d }}" {% if d == dept %}selected{% endif %}>{{ d }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <select name="status" class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-2.5 px-3 rounded-lg text-sm">
+            {% for s in ['Tous','En cours','Sorti'] %}<option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <select name="risk" class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-2.5 px-3 rounded-lg text-sm">
+            {% for s in ['Tous','Critique','Modéré','Stable'] %}<option value="{{ s }}" {% if s == risk %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+    </form>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <p class="text-sm text-slate-500"><strong class="text-slate-800">{{ total }}</strong> patient(s)</p>
+        <p class="text-xs text-slate-400">Page {{ page }} / {{ total_pages }}</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm whitespace-nowrap">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider">
+              <th class="px-6 py-3">ID</th>
+              <th class="px-6 py-3"><a href="{{ sort_href('name') }}" class="hover:text-teal-600">Patient</a></th>
+              <th class="px-6 py-3">Risque</th>
+              <th class="px-6 py-3"><a href="{{ sort_href('age') }}" class="hover:text-teal-600">Âge</a></th>
+              <th class="px-6 py-3">Service</th>
+              <th class="px-6 py-3">Diagnostic</th>
+              <th class="px-6 py-3"><a href="{{ sort_href('stay') }}" class="hover:text-teal-600">Séjour</a></th>
+              <th class="px-6 py-3"><a href="{{ sort_href('cost') }}" class="hover:text-teal-600">Coût</a></th>
+              <th class="px-6 py-3">Statut</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
+            {% for p in rows %}
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="px-6 py-4"><span class="font-mono text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{{ p.id }}</span></td>
+              <td class="px-6 py-4 text-slate-800">{{ p.name }}</td>
+              <td class="px-6 py-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium {% if p.risk=='Critique' %}bg-rose-50 text-rose-700{% elif p.risk=='Modéré' %}bg-amber-50 text-amber-700{% else %}bg-emerald-50 text-emerald-700{% endif %}">{{ p.risk }}</span></td>
+              <td class="px-6 py-4 text-slate-600">{{ p.age }} ans</td>
+              <td class="px-6 py-4"><span class="text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full text-xs font-medium">{{ p.dept }}</span></td>
+              <td class="px-6 py-4 text-slate-500">{{ p.disease }}</td>
+              <td class="px-6 py-4 text-slate-600 font-medium">{{ p.stay }}j</td>
+              <td class="px-6 py-4 text-slate-600 font-medium">{{ p.cost|round(0)|int }} €</td>
+              <td class="px-6 py-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium {% if p.status=='En cours' %}bg-indigo-50 text-indigo-700 border border-indigo-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %}">{{ p.status }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="px-6 py-16 text-center text-slate-400">Aucun patient ne correspond aux critères.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if total_pages > 1 %}
+      <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+        <p class="text-xs text-slate-400">Page {{ page }} / {{ total_pages }}</p>
+        <div class="flex items-center gap-2">
+          {% if page > 1 %}
+          <a href="{{ url_for('patients.patients_list', page=page-1, search=search, dept=dept, status=status, risk=risk, sort=sort_key, dir=sort_dir) }}" class="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">←</a>
+          {% endif %}
+          {% for n in pages %}
+          {% if n <= 15 %}
+          <a href="{{ url_for('patients.patients_list', page=n, search=search, dept=dept, status=status, risk=risk, sort=sort_key, dir=sort_dir) }}" class="w-8 h-8 rounded-lg text-sm flex items-center justify-center {% if n==page %}bg-teal-600 text-white{% else %}border border-slate-200 text-slate-500 hover:bg-slate-50{% endif %}">{{ n }}</a>
+          {% endif %}
+          {% endfor %}
+          {% if page < total_pages %}
+          <a href="{{ url_for('patients.patients_list', page=page+1, search=search, dept=dept, status=status, risk=risk, sort=sort_key, dir=sort_dir) }}" class="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">→</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

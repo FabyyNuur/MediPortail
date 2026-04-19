@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MediPortail{% endblock %} — M2 CSDS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?fix=select1">
+  <!-- Hors @layer : prime sur Tailwind ; WebKit évite listbox si appearance est mal héritée -->
+  <style id="safari-select-fix">
+    select:not([multiple]):not([size]),
+    select[size="1"] {
+      -webkit-appearance: menulist-button !important;
+      appearance: auto !important;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  {% block head_extra %}{% endblock %}
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
+  <nav class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <a href="{{ url_for('main.dashboard') }}" class="flex items-center space-x-2.5">
+          <div class="bg-gradient-to-br from-teal-500 to-teal-600 p-2 rounded-lg shadow-md shadow-teal-200/60">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-800 tracking-tight" style="font-size:1.05rem"><strong>Medi</strong>Portail</span>
+            <span class="text-xs text-teal-600 bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-full">M2 CSDS</span>
+          </div>
+        </a>
+        <div class="hidden md:flex items-center space-x-1">
+          {% set ep = request.endpoint %}
+          <a href="{{ url_for('main.dashboard') }}" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all {% if ep == 'main.dashboard' %}bg-teal-50 text-teal-700 border border-teal-100 shadow-sm{% else %}text-slate-500 hover:text-slate-800 hover:bg-slate-50{% endif %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            Tableau de Bord
+          </a>
+          <a href="{{ url_for('main.rapports') }}" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all {% if ep == 'main.rapports' %}bg-teal-50 text-teal-700 border border-teal-100 shadow-sm{% else %}text-slate-500 hover:text-slate-800 hover:bg-slate-50{% endif %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Rapports
+          </a>
+          <a href="{{ url_for('patients.patients_list') }}" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all {% if ep == 'patients.patients_list' %}bg-teal-50 text-teal-700 border border-teal-100 shadow-sm{% else %}text-slate-500 hover:text-slate-800 hover:bg-slate-50{% endif %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            Base Patients
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="md:hidden border-t border-slate-100 px-4 py-2 flex gap-1 overflow-x-auto">
+      <a href="{{ url_for('main.dashboard') }}" class="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap {% if ep == 'main.dashboard' %}bg-teal-50 text-teal-700 border border-teal-100{% else %}text-slate-500{% endif %}">Tableau</a>
+      <a href="{{ url_for('main.rapports') }}" class="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap {% if ep == 'main.rapports' %}bg-teal-50 text-teal-700 border border-teal-100{% else %}text-slate-500{% endif %}">Rapports</a>
+      <a href="{{ url_for('patients.patients_list') }}" class="px-3 py-1.5 rounded-lg text-xs whitespace-nowrap {% if ep == 'patients.patients_list' %}bg-teal-50 text-teal-700 border border-teal-100{% else %}text-slate-500{% endif %}">Patients</a>
+    </div>
+  </nav>
+  <div class="flex-1">{% block content %}{% endblock %}</div>
+  <footer class="border-t border-slate-200 bg-white mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2 text-slate-400 text-sm">
+        <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <span>MediPortail — Dashboard Flask / Chart.js</span>
+      </div>
+      <p class="text-slate-400 text-sm">© {{ moment_year }} Projet Master 2 CSDS</p>
+    </div>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

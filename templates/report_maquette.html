@@ -1,0 +1,513 @@
+{% extends "base.html" %} {% block title %}Rapport analytique A4{% endblock %}
+{% block head_extra %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/report_maquette.css') }}"
+/>
+{% endblock %} {% block content %}
+<div class="report-maquette-wrap">
+  <div id="pdf-modal-root">
+    <div class="report-maquette-toolbar print:hidden">
+      <div class="report-toolbar-inner">
+        <svg
+          class="report-toolbar-icon"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+        <h2>Aperçu du Rapport</h2>
+      </div>
+      <div class="report-maquette-toolbar-actions">
+        <button type="button" id="report-print-btn">
+          <svg
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+            />
+          </svg>
+          Imprimer
+        </button>
+        <button
+          type="button"
+          class="report-btn-primary"
+          id="report-download-btn"
+        >
+          <svg
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+            />
+          </svg>
+          Télécharger (.pdf)
+        </button>
+        <div class="report-toolbar-divider"></div>
+        <button
+          type="button"
+          class="report-btn-close"
+          id="report-close-btn"
+          title="Retour aux rapports"
+          data-back-url="{{ url_for('main.rapports') }}"
+        >
+          <svg
+            width="20"
+            height="20"
+            fill="none"
+            stroke="rgba(255,255,255,0.7)"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="report-maquette-pages">
+      {% for sheet in sheets %}
+      <article class="report-sheet">
+        {% if loop.index0 == 0 %}
+        <header class="report-sheet__header report-sheet__header--cover">
+          <div class="report-brand">
+            <div class="report-brand__icon">
+              <svg
+                width="24"
+                height="24"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p class="report-brand__title">MediPortail</p>
+              <p class="report-brand__sub">M2 CSDS — Santé</p>
+            </div>
+          </div>
+          <div class="report-cover-date">
+            <p>Rapport généré le :</p>
+            <strong>{{ generated_date }}</strong>
+          </div>
+        </header>
+        <div class="report-sheet__body report-sheet__body--cover">
+          <div class="report-sheet__body--centered">
+            <h2 class="report-h-cover">Rapport Analytique Détaillé</h2>
+            <div class="report-rule"></div>
+            <div class="report-cover-card">
+              <div class="report-cover-row">
+                <span class="report-cover-label"
+                  >Période d'analyse consolidée</span
+                >
+                <span class="report-cover-pill--teal"
+                  >{{ period_display }}</span
+                >
+              </div>
+              <div class="report-cover-row">
+                <span class="report-cover-label"
+                  >Périmètre Départemental Ciblé</span
+                >
+                <span class="report-cover-pill--indigo"
+                  >{{ dept_display }}</span
+                >
+              </div>
+            </div>
+            <p class="report-cover-blurb">
+              Ce document présente l'analyse détaillée de l'activité clinique et
+              financière de l'établissement. L'objectif est de fournir une
+              vision globale des indicateurs clés de performance (KPIs) pour
+              l'allocation des ressources et la prise de décision stratégique.
+            </p>
+          </div>
+        </div>
+        {% else %}
+        <header class="report-sheet__header report-sheet__header--inner">
+          <div class="report-brand">
+            <svg
+              width="18"
+              height="18"
+              class="text-teal-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
+            </svg>
+            <span class="report-brand__title report-brand__title--compact"
+              >MediPortail</span
+            >
+          </div>
+          <span class="report-sheet__meta"
+            >Rapport Analytique — {{ period_display }}</span
+          >
+        </header>
+        <div class="report-sheet__body">
+          {% if sheet.kind == 'summary' %}
+          <section>
+            <h3 class="report-h-section">
+              <span class="report-h-section__num">1</span>
+              Synthèse Exécutive
+            </h3>
+            <p class="report-lead">
+              Les indicateurs macro-économiques et cliniques suivants reflètent
+              la performance globale sur le périmètre sélectionné. Ils mettent
+              en évidence les variations par rapport à la période précédente.
+            </p>
+            <div class="report-kpi-grid">
+              {% for item in sheet.report_summary %}
+              <div class="report-kpi-card">
+                <span>{{ item.label }}</span>
+                <div class="report-kpi-card__row">
+                  <span class="report-kpi-value">{{ item.value }}</span>
+                  {% set ch = item.change %}
+                  <span
+                    class="report-kpi-change {% if ch.startswith('+') %}report-kpi-change--up{% elif ch.startswith('-') %}report-kpi-change--down{% elif ch != '—' %}report-kpi-change--up{% endif %}"
+                    >{{ ch }}</span
+                  >
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </section>
+          <section class="report-section-flex">
+            <h3 class="report-h-section">
+              <span class="report-h-section__num">2</span>
+              Dynamique des Admissions et Sorties
+            </h3>
+            <div class="report-chart-box">
+              <h4>Évolution Mensuelle des Flux Patients</h4>
+              <div class="chart-canvas-wrap">
+                <canvas id="maquetteChartAdmissions"></canvas>
+              </div>
+            </div>
+            <div class="report-interpret report-interpret--spaced">
+              <h4>Interprétation Analytique</h4>
+              <p>{{ sheet.interpretation }}</p>
+            </div>
+          </section>
+
+          {% elif sheet.kind == 'patho_first' %}
+          <h3 class="report-h-section">
+            <span class="report-h-section__num">3</span>
+            Répartition par Pathologie Principale
+          </h3>
+          <div class="report-grid-2">
+            <div class="report-chart-box report-chart-box--sm">
+              <h4>Top 5 des Diagnostics (Volume)</h4>
+              <div class="chart-canvas-wrap">
+                <canvas id="maquetteChartPatho"></canvas>
+              </div>
+            </div>
+            <div class="report-note-clinique">
+              <h4>Note Clinique</h4>
+              <p>
+                L'analyse de la typologie des séjours met en évidence les
+                pathologies les plus représentées sur le périmètre filtré, pour
+                prioriser les ressources cliniques et le triage.
+              </p>
+              <p>
+                Les volumes élevés sur certaines lignes diagnostiques peuvent
+                refléter la structure d'offre de soins et la démographie des
+                patients admis.
+              </p>
+            </div>
+          </div>
+          {% include 'report_maquette_patho_table.html' %} {% elif sheet.kind ==
+          'patho_continue' %}
+          <h3 class="report-h-section">
+            <span class="report-h-section__num">3</span>
+            Répartition par Pathologie Principale (Suite)
+          </h3>
+          {% include 'report_maquette_patho_table.html' %} {% elif sheet.kind ==
+          'dept' %}
+          <h3 class="report-h-section">
+            <span class="report-h-section__num">4</span>
+            Durée de Séjour et Impacts Financiers{% if sheet.suite %} (Suite){%
+            endif %}
+          </h3>
+          <div class="report-grid-2 report-grid-2--top">
+            <div class="report-panel">
+              <h4>4.1 Durée Moyenne de Séjour</h4>
+              <p class="report-panel__sub">Ventilation par département</p>
+              {% if sheet.stay %}
+              <div class="space-y-4">
+                {%- for row in sheet.stay -%}{%- set dw_raw = row.duree / 10.0 *
+                100 -%}{%- set dw = dw_raw if dw_raw < 100 else 100 -%}
+                <div>
+                  <div class="row-label">
+                    <span class="report-row-label-name">{{ row.dept }}</span
+                    ><strong class="indigo"
+                      >{{ row.duree | round(1) }} jours</strong
+                    >
+                  </div>
+                  <div class="report-bar-track indigo">
+                    <span
+                      class="report-bar-fill report-bar-fill--indigo"
+                      data-width="{{ dw }}"
+                    ></span>
+                  </div>
+                </div>
+                {%- endfor -%}
+              </div>
+              {% else %}
+              <p class="report-no-data">Aucune donnée</p>
+              {% endif %}
+            </div>
+            <div class="report-panel">
+              <h4>4.2 Impact Financier Opérationnel</h4>
+              <p class="report-panel__sub">Coûts budgétaires imputables</p>
+              {% if sheet.cost %}
+              <div class="space-y-4">
+                {%- for row in sheet.cost -%}{%- set rawp = (row.cout /
+                sheet.max_cost * 100) if sheet.max_cost else 0 -%}{%- set pct =
+                rawp if rawp < 100 else 100 -%}
+                <div>
+                  <div class="row-label">
+                    <span class="report-row-label-name">{{ row.name }}</span
+                    ><strong class="emerald"
+                      >{{ (row.cout|round(0)|int)|string|replace(',', ' ') }}
+                      €</strong
+                    >
+                  </div>
+                  <div class="report-bar-track emerald">
+                    <span
+                      class="report-bar-fill report-bar-fill--emerald"
+                      data-width="{{ pct }}"
+                    ></span>
+                  </div>
+                </div>
+                {%- endfor -%}
+              </div>
+              {% else %}
+              <p class="report-no-data">Aucune donnée</p>
+              {% endif %}
+            </div>
+          </div>
+
+          {% elif sheet.kind == 'insights' %}
+          <h3 class="report-h-section">
+            <span class="report-h-section__num">5</span>
+            Insights &amp; Recommandations (IA)
+          </h3>
+          <div class="report-insights-card">
+            <div class="report-insights-card__head">
+              <div class="report-brand__icon report-brand__icon--compact">
+                <svg
+                  width="22"
+                  height="22"
+                  fill="none"
+                  stroke="#99f6e4"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </div>
+              <h3>Avis de l'Aide à la Décision</h3>
+            </div>
+            <p class="report-insights-lead">{{ sheet.lead }}</p>
+            <div class="report-reco-grid">
+              {% for card in sheet.cards %}
+              <div class="report-reco-item">
+                <div class="report-reco-item__badge {{ card.accent }}">
+                  {{ card.n }}
+                </div>
+                <div>
+                  <h4 class="{{ card.accent }}">{{ card.title }}</h4>
+                  <p>{{ card.body }}</p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <footer class="report-sheet__footer">
+          <span>Généré via MediPortail</span>
+          <span>Document Confidentiel</span>
+          <span
+            >Page <strong>{{ loop.index }}</strong> sur
+            <strong>{{ total_pages }}</strong></span
+          >
+        </footer>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="maquette-chart-data">
+  {{ {
+    'labels': maquette_extras.monthly_labels,
+    'admissions': maquette_extras.monthly_admissions,
+    'patho_top5': maquette_extras.patho_top5,
+    'colors': chart_colors
+  } | tojson }}
+</script>
+<script>
+  (function () {
+    var dataEl = document.getElementById("maquette-chart-data");
+    if (!dataEl || typeof Chart === "undefined") return;
+    var payload = JSON.parse(dataEl.textContent);
+    var colors = payload.colors || ["#0D9488", "#6366F1", "#F59E0B"];
+
+    function applyBarWidths() {
+      document.querySelectorAll("[data-width]").forEach(function (el) {
+        var raw = Number(el.getAttribute("data-width"));
+        if (!Number.isFinite(raw)) return;
+        var width = Math.max(0, Math.min(100, raw));
+        if (el.classList.contains("report-mini-bar__fill")) {
+          el.style.width = width + "%";
+        } else {
+          el.style.setProperty("--bar-width", width + "%");
+        }
+      });
+    }
+
+    function goPrint(asDownload) {
+      if (asDownload) {
+        alert(
+          "Pour télécharger le PDF :\n1. La fenêtre d'impression va s'ouvrir.\n2. Changez l'imprimante cible pour « Enregistrer au format PDF ».\n3. Cliquez sur « Enregistrer ».",
+        );
+      }
+      setTimeout(function () {
+        window.print();
+      }, 400);
+    }
+    document.getElementById("report-print-btn") &&
+      document
+        .getElementById("report-print-btn")
+        .addEventListener("click", function () {
+          goPrint(false);
+        });
+    document.getElementById("report-download-btn") &&
+      document
+        .getElementById("report-download-btn")
+        .addEventListener("click", function () {
+          goPrint(true);
+        });
+    var closeBtn = document.getElementById("report-close-btn");
+    if (closeBtn && closeBtn.dataset.backUrl)
+      closeBtn.addEventListener("click", function () {
+        window.location.href = closeBtn.dataset.backUrl;
+      });
+
+    var chartOpts = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: { legend: { display: false } },
+    };
+
+    var adm = document.getElementById("maquetteChartAdmissions");
+    if (adm && payload.labels && payload.labels.length) {
+      new Chart(adm, {
+        type: "line",
+        data: {
+          labels: payload.labels,
+          datasets: [
+            {
+              label: "Admissions",
+              data: payload.admissions,
+              borderColor: "#0D9488",
+              backgroundColor: "rgba(13, 148, 136, 0.14)",
+              fill: true,
+              tension: 0.35,
+              borderWidth: 2.5,
+              pointRadius: 0,
+            },
+          ],
+        },
+        options: Object.assign({}, chartOpts, {
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 10 }, color: "#64748b" },
+            },
+            y: {
+              grid: { color: "#e2e8f0", borderDash: [3, 3] },
+              ticks: { font: { size: 10 }, color: "#64748b" },
+            },
+          },
+        }),
+      });
+    }
+
+    var pt = document.getElementById("maquetteChartPatho");
+    if (pt && payload.patho_top5 && payload.patho_top5.length) {
+      var names = payload.patho_top5.map(function (r) {
+        return r.name;
+      });
+      var vals = payload.patho_top5.map(function (r) {
+        return r.cases;
+
+        applyBarWidths();
+      });
+      var bg = payload.patho_top5.map(function (_, i) {
+        return colors[i % colors.length];
+      });
+      new Chart(pt, {
+        type: "bar",
+        data: {
+          labels: names,
+          datasets: [
+            { label: "Cas", data: vals, backgroundColor: bg, borderRadius: 4 },
+          ],
+        },
+        options: Object.assign({}, chartOpts, {
+          indexAxis: "y",
+          scales: {
+            x: { display: false, grid: { display: false } },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 10 }, color: "#64748b" },
+            },
+          },
+        }),
+      });
+    }
+  })();
+</script>
+{% endblock %}

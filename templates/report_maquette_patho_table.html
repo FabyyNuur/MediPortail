@@ -1,0 +1,40 @@
+<div class="report-table-wrap">
+  <div class="report-table-wrap__head">
+    <h4>Données Consolidées par Diagnostic</h4>
+  </div>
+  <table class="report-table">
+    <thead>
+      <tr>
+        <th>Classification / Diagnostic</th>
+        <th class="num">Nombre de Cas</th>
+        <th class="num">Proportion (%)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for row in sheet.rows %}{%- set pct = (row.cases * 100.0 /
+      sheet.total_cases) if sheet.total_cases else 0 %}
+      <tr>
+        <td>{{ row.name }}</td>
+        <td class="num">{{ row.cases }}</td>
+        <td class="num">
+          <div class="report-pct-cell">
+            <span>{{ '%.1f'|format(pct) }} %</span>
+            <div class="report-mini-bar">
+              <span
+                class="report-mini-bar__fill"
+                data-width="{% if pct > 100 %}100{% else %}{{ pct }}{% endif %}"
+              ></span>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {%- endfor %}{%- if sheet.show_total %}
+      <tr class="total-row">
+        <td>TOTAL CONSOLIDÉ</td>
+        <td class="num accent">{{ sheet.total_cases }}</td>
+        <td class="num accent">100 %</td>
+      </tr>
+      {%- endif %}
+    </tbody>
+  </table>
+</div>

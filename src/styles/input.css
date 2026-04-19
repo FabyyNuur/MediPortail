@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@source "../../templates/**/*.html";
+@source "../../static/**/*.js";
+
+/* Correctif Select/WebKit : voir <style id="safari-select-fix"> dans base.html */
