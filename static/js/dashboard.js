@@ -98,4 +98,11 @@
       },
     });
   }
+
+  var filterForm = document.getElementById("dashboard-filters");
+  if (filterForm) {
+    filterForm.addEventListener("change", function () {
+      filterForm.submit();
+    });
+  }
 })();

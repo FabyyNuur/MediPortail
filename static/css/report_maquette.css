@@ -398,6 +398,135 @@
   margin: 0 0 1.5rem;
 }
 
+.report-lead--tight {
+  margin-bottom: 1rem;
+}
+
+.report-intro-block {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.15rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  border-left: 4px solid #0d9488;
+}
+
+.report-intro-block__title {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f766e;
+  letter-spacing: 0.02em;
+}
+
+.report-intro-block__body {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.report-intro-block__body p {
+  margin: 0 0 0.65rem;
+}
+
+.report-intro-block__body p:last-of-type {
+  margin-bottom: 0.5rem;
+}
+
+.report-intro-block__body strong {
+  color: #1e293b;
+}
+
+.report-intro-block__body a {
+  color: #0f766e;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.report-intro-block__body ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.15rem;
+}
+
+.report-intro-block__body li {
+  margin-bottom: 0.35rem;
+}
+
+.report-intro-block__body li:last-child {
+  margin-bottom: 0;
+}
+
+.report-intro-scope {
+  margin: 0 0 0.65rem;
+}
+
+.report-intro-scope .report-intro-line {
+  margin: 0 0 0.2rem;
+}
+
+.report-intro-scope .report-intro-line:last-child {
+  margin-bottom: 0;
+}
+
+.report-dash-week-block {
+  margin-bottom: 1rem;
+}
+
+.report-dash-subh {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.report-chart-box--dash {
+  min-height: 0;
+  padding: 0.75rem 1rem;
+}
+
+.report-chart-box--dash .chart-canvas-wrap {
+  flex: 0 0 auto;
+}
+
+.chart-canvas-wrap--dash-line {
+  min-height: 130px;
+  height: 130px;
+}
+
+.chart-canvas-wrap--dash-donut {
+  min-height: 150px;
+  height: 150px;
+}
+
+.chart-canvas-wrap--dash-bar {
+  min-height: 170px;
+  height: 170px;
+}
+
+.report-interpret--dash {
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.report-interpret--dash h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.65rem;
+}
+
+.report-interpret--dash p {
+  margin: 0;
+}
+
+.report-grid-2--dash-pair {
+  margin-top: 0.75rem;
+  align-items: start;
+}
+
 .report-kpi-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -541,6 +670,14 @@
 
 .report-note-clinique p:last-child {
   margin-bottom: 0;
+}
+
+.report-note-clinique__data {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #fde68a;
+  font-size: 0.8125rem;
+  line-height: 1.55;
 }
 
 /* Table pathologies */
@@ -911,7 +1048,8 @@
   .report-cover-card,
   .report-grid-2,
   .report-kpi-grid,
-  .report-reco-grid {
+  .report-reco-grid,
+  .report-intro-block {
     break-inside: avoid;
     page-break-inside: avoid;
   }

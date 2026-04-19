@@ -4,7 +4,6 @@ CLI optionnel : exporte vers static/exports/rapport_maquette.pdf via un mini-ser
 L’usage principal est le bouton « Télécharger » sur la page Rapports (route Flask).
 
   python scripts/export_maquette_pdf.py
-  python scripts/export_maquette_pdf.py --periode all --dept Cardiologie
 """
 
 from __future__ import annotations
@@ -14,7 +13,6 @@ import socket
 import threading
 import time
 from pathlib import Path
-from urllib.parse import urlencode
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / "static" / "exports"
@@ -27,22 +25,9 @@ def _free_port() -> int:
         return int(s.getsockname()[1])
 
 
-def _make_url(port: int, ns: argparse.Namespace) -> str:
-    q: dict[str, str] = {}
-    if ns.periode:
-        q["periode"] = ns.periode
-    if ns.dept:
-        q["dept"] = ns.dept
-    if ns.sexe:
-        q["sexe"] = ns.sexe
-    if ns.maladie:
-        q["maladie"] = ns.maladie
-    if ns.traitement:
-        q["traitement"] = ns.traitement
-    base = f"http://127.0.0.1:{port}/rapport/maquette"
-    if q:
-        return base + "?" + urlencode(q)
-    return base
+def _make_url(port: int) -> str:
+    """URL maquette sans requête : le rapport est toujours consolidé sur tout le fichier."""
+    return f"http://127.0.0.1:{port}/rapport/maquette"
 
 
 def export_pdf(ns: argparse.Namespace | None = None) -> Path:
@@ -57,7 +42,7 @@ def export_pdf(ns: argparse.Namespace | None = None) -> Path:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     port = _free_port()
-    url = _make_url(port, ns)
+    url = _make_url(port)
 
     server = make_server("127.0.0.1", port, app, threaded=True)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -78,11 +63,11 @@ def export_pdf(ns: argparse.Namespace | None = None) -> Path:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="PDF rapport maquette A4 (CLI)")
-    ap.add_argument("--periode", default="", help="Filtre : 30, 90, 365 ou all")
-    ap.add_argument("--dept", default="", help="Département (un seul)")
-    ap.add_argument("--sexe", default="")
-    ap.add_argument("--maladie", default="")
-    ap.add_argument("--traitement", default="")
+    ap.add_argument("--periode", default="", help="(Ignoré) Conservé pour compatibilité CLI.")
+    ap.add_argument("--dept", default="", help="(Ignoré) Conservé pour compatibilité CLI.")
+    ap.add_argument("--sexe", default="", help="(Ignoré)")
+    ap.add_argument("--maladie", default="", help="(Ignoré)")
+    ap.add_argument("--traitement", default="", help="(Ignoré)")
     args = ap.parse_args()
     export_pdf(args)
 

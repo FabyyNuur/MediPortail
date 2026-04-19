@@ -21,19 +21,19 @@ def _strip_html(s: str) -> str:
 
 
 def build_maquette_sheets(
-    filtered,
+    data,
     *,
     period_label: str,
     dept_label: str,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Retourne (liste des feuilles pour le template, extras JSON pour Chart.js)."""
-    patho_all = an.pathologies_consolidees(filtered)
+    patho_all = an.pathologies_consolidees(data)
     total_cases = sum(p["cases"] for p in patho_all)
 
-    report_summary = an.report_summary_rows(filtered)
-    monthly = an.monthly_admissions_series(filtered)
-    avg_stay = an.avg_stay_by_department(filtered)
-    cost_dep = an.cost_by_department(filtered)
+    report_summary = an.report_summary_rows(data)
+    monthly = an.monthly_admissions_series(data)
+    avg_stay = an.avg_stay_by_department(data)
+    cost_dep = an.cost_by_department(data)
 
     stay_labels = avg_stay["labels"]
     stay_vals = avg_stay["values"]
@@ -41,12 +41,15 @@ def build_maquette_sheets(
     cost_vals = cost_dep["values"]
     max_cost = max(cost_vals, default=0) or 0
 
-    peak = an.peak_month_label(filtered)
+    peak = an.peak_month_label(data)
     interpretation = (
-        f"L'évolution de l'activité reflète les données agrégées du périmètre sélectionné. "
+        f"L'évolution de l'activité reflète les données agrégées sur l'ensemble des séjours du fichier. "
         f"Le mois le plus chargé est {peak}. Les flux mensuels permettent d'anticiper les tensions "
         f"capitaires et d'aligner les ressources sur les pics d'activité observés."
     )
+    extra_adm = an.maquette_admissions_interpretation_extra(data)
+    if extra_adm:
+        interpretation = f"{interpretation} {extra_adm}"
 
     sheets: list[dict[str, Any]] = [{"kind": "cover"}]
 
@@ -55,6 +58,13 @@ def build_maquette_sheets(
             "kind": "summary",
             "report_summary": report_summary,
             "interpretation": interpretation,
+        }
+    )
+
+    sheets.append(
+        {
+            "kind": "dashboard",
+            "captions": an.chart_captions_dashboard(data),
         }
     )
 
@@ -71,6 +81,7 @@ def build_maquette_sheets(
             "rows": patho_first,
             "show_total": len(patho_remaining) == 0,
             "total_cases": total_cases,
+            "patho_note": an.maquette_pathology_note(data),
         }
     )
     for idx, chunk in enumerate(remaining_chunks):
@@ -107,7 +118,7 @@ def build_maquette_sheets(
             }
         )
 
-    bundle = an.decision_support_bundle(filtered)
+    bundle = an.decision_support_bundle(data)
     insights_html = bundle.get("insights_html") or []
     lead_parts = [
         _strip_html(x)
@@ -117,26 +128,26 @@ def build_maquette_sheets(
     lead = (
         " ".join(lead_parts)
         if lead_parts
-        else an.insight_activite(filtered)
+        else an.insight_activite(data)
     )
 
     cards = [
         {
             "n": 1,
             "title": "Axe capacitaire",
-            "body": an.insight_activite(filtered),
+            "body": an.insight_activite(data),
             "accent": "teal",
         },
         {
             "n": 2,
             "title": "Ressources & démographie",
-            "body": an.insight_demographie(filtered),
+            "body": an.insight_demographie(data),
             "accent": "indigo",
         },
         {
             "n": 3,
             "title": "Gestion financière",
-            "body": an.insight_finances(filtered),
+            "body": an.insight_finances(data),
             "accent": "amber",
         },
     ]
@@ -155,6 +166,9 @@ def build_maquette_sheets(
         "patho_top5": patho_all[:5],
         "period_label": period_label,
         "dept_label": dept_label,
+        "dashboard_weekday": an.admissions_by_weekday(data),
+        "dashboard_age": an.age_groups_design(data),
+        "dashboard_cost": an.cost_by_department(data),
     }
 
     return sheets, extras

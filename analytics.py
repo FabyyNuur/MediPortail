@@ -71,17 +71,26 @@ def filter_dataframe(
 
 
 def apply_period_filter(df: pd.DataFrame, periode: str | None) -> pd.DataFrame:
-    """Filtre les admissions dont la date est dans les N derniers jours (ou tout si all)."""
+    """Filtre sur DateAdmission : années, exercice 2024-2025, ou N derniers jours (rétrocompat)."""
     if not periode or str(periode).strip() in ("", "all"):
         return df.copy()
+    p = str(periode).strip()
+    sub = df.dropna(subset=["DateAdmission"])
+    if p == "2024":
+        return sub[sub["DateAdmission"].dt.year == 2024].copy()
+    if p == "2025":
+        return sub[sub["DateAdmission"].dt.year == 2025].copy()
+    if p == "2425":
+        start = pd.Timestamp("2024-01-01")
+        end = pd.Timestamp("2025-12-31")
+        return sub[(sub["DateAdmission"] >= start) & (sub["DateAdmission"] <= end)].copy()
     try:
-        days = int(periode)
+        days = int(p)
     except (TypeError, ValueError):
         return df.copy()
     if days <= 0:
         return df.copy()
     cutoff = pd.Timestamp.now().normalize() - pd.Timedelta(days=days)
-    sub = df.dropna(subset=["DateAdmission"])
     return sub[sub["DateAdmission"] >= cutoff].copy()
 
 
@@ -91,6 +100,11 @@ def fmt_total_cost_eur(x: float) -> str:
     if x >= 10_000:
         return f"{x / 1000:.1f}k €"
     return f"{x:,.0f} €".replace(",", " ").replace("\u202f", " ")
+
+
+def fmt_amount_space(x: float) -> str:
+    """Montant entier avec espaces comme séparateurs de milliers (texte interprétatif)."""
+    return f"{x:,.0f}".replace(",", " ").replace("\u202f", " ")
 
 
 def dashboard_narrative(df: pd.DataFrame) -> list[str]:
@@ -423,7 +437,7 @@ def insight_activite(df: pd.DataFrame) -> str:
     n = len(df)
     return (
         f"Les admissions ont varié sur la période couverte ; le mois le plus chargé est {peak}. "
-        f"La pathologie la plus représentée est « {top_m} » ({n} séjours dans le filtre)."
+        f"La pathologie la plus représentée est « {top_m} » ({n} séjours pris en compte)."
     )
 
 
@@ -453,9 +467,270 @@ def insight_demographie(df: pd.DataFrame) -> str:
     pct_m = hm / total * 100
     age_mean = float(df["Age"].mean())
     return (
-        f"Répartition H/F : environ {pct_m:.0f}% d’hommes pour l’échantillon filtré ; "
+        f"Répartition H/F : environ {pct_m:.0f}% d’hommes sur l’échantillon analysé ; "
         f"âge moyen {age_mean:.1f} ans."
     )
+
+
+def _chart_caption_empty() -> str:
+    return "Aucune donnée ne permet d’interpréter ce graphique pour cet ensemble."
+
+
+def caption_dashboard_admissions_weekday(df: pd.DataFrame) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    aw = admissions_by_weekday(df)
+    if not aw["values"] or sum(aw["values"]) == 0:
+        return "Aucune admission avec date renseignée : la courbe par jour de la semaine reste vide."
+    vals = list(aw["values"])
+    labels = list(aw["labels"])
+    imax = int(np.argmax(vals))
+    peak_lab, peak_n = labels[imax], vals[imax]
+    total = sum(vals) or 1
+    pct = peak_n / total * 100
+    semaine = sum(vals[:5])
+    week_end = sum(vals[5:7])
+    if semaine > 0 and week_end >= 0:
+        ratio_we = week_end / semaine * 100
+        if ratio_we < 12:
+            suite = f" L’activité est surtout concentrée en semaine (week-end ≈ {ratio_we:.0f} % du volume des jours ouvrés)."
+        elif ratio_we > 35:
+            suite = f" Le week-end représente une part notable du volume par rapport aux jours ouvrés (≈ {ratio_we:.0f} %)."
+        else:
+            suite = ""
+    else:
+        suite = ""
+    return (
+        f"Le jour le plus chargé est {peak_lab} ({peak_n} admissions, soit environ {pct:.0f} % du total hebdomadaire)."
+        f"{suite}"
+    )
+
+
+def caption_dashboard_age_profile(df: pd.DataFrame) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    age_mean = float(df["Age"].mean())
+    age_min = int(df["Age"].min())
+    age_max = int(df["Age"].max())
+    ag = age_groups_design(df)
+    if not ag["labels"] or sum(ag["values"]) == 0:
+        return f"Âge moyen {age_mean:.1f} ans (min. {age_min}, max. {age_max}) ; répartition par tranche non disponible."
+    idx = int(np.argmax(ag["values"]))
+    dom_lab, dom_n = ag["labels"][idx], ag["values"][idx]
+    tot = sum(ag["values"]) or 1
+    pct_dom = dom_n / tot * 100
+    return (
+        f"La population couverte a un âge moyen de {age_mean:.1f} ans (extrêmes : {age_min} et {age_max} ans). "
+        f"La tranche la plus représentée est « {dom_lab} » ({dom_n} patients, soit environ {pct_dom:.0f} % du total)."
+    )
+
+
+def caption_dashboard_cost_by_department(df: pd.DataFrame) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    cd = cost_by_department(df)
+    if not cd["labels"]:
+        return "Aucun coût agrégé par département sur ces données."
+    labels, values = cd["labels"], [float(v) for v in cd["values"]]
+    total = sum(values) or 1.0
+    top = labels[0]
+    top_v = values[0]
+    bot = labels[-1]
+    bot_v = values[-1]
+    top3 = sum(values[: min(3, len(values))])
+    pct_top3 = top3 / total * 100
+    pct_top = top_v / total * 100
+    return (
+        f"« {top} » concentre le plus de coûts cumulés ({pct_top:.0f} % du total, soit environ {fmt_amount_space(top_v)} €). "
+        f"« {bot} » affiche le cumul le plus bas ({fmt_amount_space(bot_v)} €). "
+        f"Les trois premiers services représentent environ {pct_top3:.0f} % des coûts."
+    )
+
+
+def caption_rapports_monthly_admissions_sorties(df: pd.DataFrame) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    m = monthly_admissions_series(df)
+    if not m["labels"]:
+        return "Dates d’admission ou de sortie insuffisantes pour reconstituer le flux mensuel."
+    adm, sor = m["admissions"], m["sorties"]
+    i_adm = int(np.argmax(adm)) if adm else 0
+    peak_m, peak_a = m["labels"][i_adm], adm[i_adm]
+    tot_a, tot_s = sum(adm), sum(sor)
+    diff = tot_a - tot_s
+    if tot_a + tot_s == 0:
+        return "Aucun mouvement mensuel enregistré."
+    if diff > 0:
+        flux = f"Sur l’ensemble des mois affichés, les admissions dépassent les sorties de {diff} séjour(s) au total."
+    elif diff < 0:
+        flux = f"Les sorties dépassent les admissions de {abs(diff)} séjour(s) au total sur la période agrégée."
+    else:
+        flux = "Admissions et sorties cumulées sont équilibrées sur la période affichée."
+    return (
+        f"Le pic d’admissions mensuelles est observé en {peak_m} ({peak_a} entrées). {flux}"
+    )
+
+
+def caption_rapports_top_pathologies(df: pd.DataFrame, n: int = 7) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    p = top_pathologies(df, n=n)
+    if not p["labels"]:
+        return "Aucun diagnostic n’a pu être classé sur ces données."
+    n_tot = len(df) or 1
+    top_name, top_c = p["labels"][0], int(p["values"][0])
+    pct1 = top_c / n_tot * 100
+    top3_c = sum(int(x) for x in p["values"][: min(3, len(p["values"]))])
+    pct3 = top3_c / n_tot * 100
+    return (
+        f"« {top_name} » est le motif le plus fréquent ({top_c} cas, environ {pct1:.0f} % des admissions). "
+        f"Les trois diagnostics les plus courants couvrent environ {pct3:.0f} % des séjours (top {min(3, len(p['labels']))} du graphique)."
+    )
+
+
+def caption_rapports_avg_stay_by_department(df: pd.DataFrame) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    st = avg_stay_by_department(df)
+    if not st["labels"]:
+        return "Aucune durée moyenne par service n’est calculable."
+    hi_lab, hi_v = st["labels"][0], float(st["values"][0])
+    lo_lab, lo_v = st["labels"][-1], float(st["values"][-1])
+    gap = hi_v - lo_v
+    return (
+        f"La durée moyenne de séjour la plus longue concerne « {hi_lab} » ({hi_v:.1f} j), "
+        f"la plus courte « {lo_lab} » ({lo_v:.1f} j). Écart entre les deux extrêmes : {gap:.1f} jour(s)."
+    )
+
+
+def caption_rapports_monthly_costs(df: pd.DataFrame) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    mc = monthly_costs_series(df)
+    if not mc["values"]:
+        return "Données insuffisantes pour l’évolution mensuelle des coûts."
+    im = int(np.argmax(mc["values"]))
+    month, val = mc["labels"][im], float(mc["values"][im])
+    tot = sum(float(x) for x in mc["values"]) or 1.0
+    pct = val / tot * 100
+    return (
+        f"Le mois {month} affiche le plus fort cumul de coûts ({fmt_amount_space(val)} €), "
+        f"soit environ {pct:.0f} % du total observé sur la série."
+    )
+
+
+def caption_rapports_cost_by_department_bar(df: pd.DataFrame) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    cd = cost_by_department(df)
+    if not cd["labels"]:
+        return "Aucun département avec coût agrégé."
+    vals = [float(v) for v in cd["values"]]
+    med = float(np.median(vals)) if vals else 0.0
+    above = sum(1 for v in vals if v > med)
+    return (
+        f"Le graphique classe {len(cd['labels'])} services par coût cumulé. "
+        f"La moitié des services dépasse un cumul d’environ {fmt_amount_space(med)} € (médiane) ; {above} service(s) sont au-dessus de cette médiane."
+    )
+
+
+def caption_rapports_demo_age_doughnut(df: pd.DataFrame) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    ag = age_groups_design(df)
+    if not ag["labels"] or sum(ag["values"]) == 0:
+        return "Répartition par tranche d’âge non disponible."
+    idx = int(np.argmax(ag["values"]))
+    tot = sum(ag["values"]) or 1
+    pct = ag["values"][idx] / tot * 100
+    return (
+        f"La tranche « {ag['labels'][idx]} » regroupe le plus grand nombre de patients "
+        f"({ag['values'][idx]} personnes, environ {pct:.0f} % de l’échantillon analysé)."
+    )
+
+
+def caption_rapports_gender_doughnut(df: pd.DataFrame) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    g = gender_split(df)
+    if not g["labels"] or not g["values"]:
+        return "Répartition par genre non disponible."
+    parts = []
+    total = sum(g["values"]) or 1
+    for lab, n in zip(g["labels"], g["values"]):
+        parts.append(f"{lab} : environ {n / total * 100:.1f} %")
+    return "Répartition observée : " + " ; ".join(parts) + "."
+
+
+def caption_rapports_demographics_summary(df: pd.DataFrame) -> str:
+    if df.empty:
+        return _chart_caption_empty()
+    age_mean = float(df["Age"].mean())
+    age_med = float(df["Age"].median())
+    return (
+        f"Âge moyen {age_mean:.1f} ans, âge médian {age_med:.0f} ans sur l’échantillon courant. "
+        f"Ces indicateurs résument le profil d’âge associé aux graphiques ci-contre."
+    )
+
+
+def chart_captions_dashboard(df: pd.DataFrame) -> dict[str, str]:
+    return {
+        "admissions_week": caption_dashboard_admissions_weekday(df),
+        "age_profile": caption_dashboard_age_profile(df),
+        "cost_dept": caption_dashboard_cost_by_department(df),
+    }
+
+
+def chart_captions_rapports(df: pd.DataFrame) -> dict[str, str]:
+    return {
+        "monthly_flux": caption_rapports_monthly_admissions_sorties(df),
+        "patho": caption_rapports_top_pathologies(df),
+        "stay": caption_rapports_avg_stay_by_department(df),
+        "monthly_costs": caption_rapports_monthly_costs(df),
+        "cost_bar": caption_rapports_cost_by_department_bar(df),
+        "demo_age": caption_rapports_demo_age_doughnut(df),
+        "gender": caption_rapports_gender_doughnut(df),
+        "stay_demo": caption_rapports_avg_stay_by_department(df),
+        "demo_summary": caption_rapports_demographics_summary(df),
+    }
+
+
+def maquette_pathology_note(df: pd.DataFrame) -> str:
+    """Texte court pour la note clinique sous le top pathologies (PDF / maquette)."""
+    if df.empty:
+        return "Aucune pathologie à commenter sur ces données."
+    p = pathologies_consolidees(df, max_rows=50)
+    if not p:
+        return "Aucune pathologie à commenter sur ces données."
+    top5 = p[:5]
+    total_cases = sum(x["cases"] for x in p) or 1
+    s5 = sum(x["cases"] for x in top5)
+    lead = top5[0]
+    pct_lead = lead["cases"] / total_cases * 100
+    pct5 = s5 / total_cases * 100
+    if len(top5) == 1:
+        return (
+            f"Le diagnostic le plus fréquent est « {lead['name']} » "
+            f"({lead['cases']} cas, environ {pct_lead:.0f} % de l’activité)."
+        )
+    names = ", ".join(x["name"] for x in top5[1:])
+    return (
+        f"Le diagnostic le plus fréquent est « {lead['name']} » ({lead['cases']} cas, environ {pct_lead:.0f} % de l’activité). "
+        f"Les motifs suivants dans le top cinq : {names}. "
+        f"Ces {len(top5)} diagnostics représentent environ {pct5:.0f} % des séjours analysés."
+    )
+
+
+def maquette_admissions_interpretation_extra(df: pd.DataFrame) -> str:
+    """Complément data-driven pour la zone d’interprétation à côté du graphique admissions (maquette)."""
+    if df.empty:
+        return ""
+    m = monthly_admissions_series(df)
+    if not m["labels"]:
+        return ""
+    adm = m["admissions"]
+    i = int(np.argmax(adm))
+    return f" Pic d’entrées mensuelles : {m['labels'][i]} ({adm[i]} admissions)."
 
 
 def decision_support_bundle(
@@ -477,7 +752,7 @@ def decision_support_bundle(
         "high_risk_count": 0,
         "dominant_maladie": None,
         "dominant_traitement": None,
-        "insights_html": ["<strong>Aucune donnée</strong> pour cette combinaison de filtres."],
+        "insights_html": ["<strong>Aucune donnée</strong> pour cette combinaison de critères."],
     }
     if df.empty:
         return empty

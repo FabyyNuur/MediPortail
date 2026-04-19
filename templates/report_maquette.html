@@ -128,7 +128,7 @@
             <div class="report-cover-card">
               <div class="report-cover-row">
                 <span class="report-cover-label"
-                  >Période d'analyse consolidée</span
+                  >Vue temporelle (fichier source)</span
                 >
                 <span class="report-cover-pill--teal"
                   >{{ period_display }}</span
@@ -136,7 +136,7 @@
               </div>
               <div class="report-cover-row">
                 <span class="report-cover-label"
-                  >Périmètre Départemental Ciblé</span
+                  >Services inclus</span
                 >
                 <span class="report-cover-pill--indigo"
                   >{{ dept_display }}</span
@@ -146,7 +146,7 @@
             <p class="report-cover-blurb">
               Ce document présente l'analyse détaillée de l'activité clinique et
               financière de l'établissement. L'objectif est de fournir une
-              vision globale des indicateurs clés de performance (KPIs) pour
+              vision globale des indicateurs clés de performance pour
               l'allocation des ressources et la prise de décision stratégique.
             </p>
           </div>
@@ -179,6 +179,59 @@
         </header>
         <div class="report-sheet__body">
           {% if sheet.kind == 'summary' %}
+          <section class="report-intro-block">
+            <h3 class="report-intro-block__title">Introduction</h3>
+            <div class="report-intro-block__body">
+              <p>
+                Ce document s’appuie sur le fichier
+                <strong>{{ rapport_intro.data_file }}</strong>. Chaque ligne décrit un séjour&nbsp;: âge, sexe,
+                service, diagnostic, traitement, dates d’admission et de sortie,
+                durée de séjour et coût — champs alignés sur le
+                <a href="{{ url_for('main.dashboard') }}">tableau de bord</a>
+                MediPortail.
+              </p>
+              <div class="report-intro-scope">
+                <p class="report-intro-line">
+                  <strong>Portée du document</strong> (ensemble du fichier, sans sous-ensemble)
+                </p>
+                <p class="report-intro-line">
+                  Synthèse calendaire affichée en couverture&nbsp;:
+                  <strong>{{ period_display }}</strong>.
+                </p>
+                <p class="report-intro-line">
+                  Services hospitaliers couverts&nbsp;:
+                  <strong>{{ dept_display }}</strong>.
+                </p>
+                <p class="report-intro-line">
+                  Séjours recensés&nbsp;:
+                  <strong>{{ rapport_intro.total_n }}</strong>.
+                </p>
+                <p class="report-intro-line">
+                  Services distincts&nbsp;:
+                  <strong>{{ rapport_intro.n_dept }}</strong>.
+                </p>
+                <p class="report-intro-line">
+                  Libellés de diagnostic&nbsp;:
+                  <strong>{{ rapport_intro.n_mal }}</strong>.
+                </p>
+                <p class="report-intro-line">
+                  Types de traitement&nbsp;:
+                  <strong>{{ rapport_intro.n_trait }}</strong>.
+                </p>
+                <p class="report-intro-line">
+                  Étendue des dates d’admission (min.–max. dans le fichier)&nbsp;:
+                  <strong>{{ rapport_intro.period_str }}</strong>.
+                </p>
+              </div>
+              <p>
+                <strong>Utilité de ce rapport</strong>&nbsp;: offrir une vue consolidée
+                (indicateurs, flux, pathologies, coûts, durées, aide à la décision
+                synthétique) pour le pilotage, la préparation budgétaire et la
+                communication interne, avec possibilité d’impression ou d’export
+                PDF.
+              </p>
+            </div>
+          </section>
           <section>
             <h3 class="report-h-section">
               <span class="report-h-section__num">1</span>
@@ -186,8 +239,8 @@
             </h3>
             <p class="report-lead">
               Les indicateurs macro-économiques et cliniques suivants reflètent
-              la performance globale sur le périmètre sélectionné. Ils mettent
-              en évidence les variations par rapport à la période précédente.
+              la performance globale sur l’ensemble des séjours du fichier source.
+              Les variations en pourcentage sont indicatives (référence maquette).
             </p>
             <div class="report-kpi-grid">
               {% for item in sheet.report_summary %}
@@ -222,6 +275,57 @@
             </div>
           </section>
 
+          {% elif sheet.kind == 'dashboard' %}
+          <section>
+            <h3 class="report-h-section">
+              <span class="report-h-section__num">+</span>
+              Indicateurs opérationnels (tableau de bord)
+            </h3>
+            <p class="report-lead report-lead--tight">
+              Les graphiques ci-dessous reprennent les mêmes agrégats que la page
+              d’accueil du portail : rythme hebdomadaire des admissions, profil
+              d’âge et coûts cumulés par service.
+            </p>
+          </section>
+          <section class="report-dash-week-block">
+            <h4 class="report-dash-subh">Admissions par jour de la semaine</h4>
+            <div class="report-chart-box report-chart-box--dash">
+              <div class="chart-canvas-wrap chart-canvas-wrap--dash-line">
+                <canvas id="maquetteChartDashWeekday"></canvas>
+              </div>
+            </div>
+            <div class="report-interpret report-interpret--dash">
+              <h4>Interprétation</h4>
+              <p>{{ sheet.captions.admissions_week }}</p>
+            </div>
+          </section>
+          <section class="report-grid-2 report-grid-2--dash-pair">
+            <div>
+              <h4 class="report-dash-subh">Profil démographique (âge)</h4>
+              <div class="report-chart-box report-chart-box--dash">
+                <div class="chart-canvas-wrap chart-canvas-wrap--dash-donut">
+                  <canvas id="maquetteChartDashAge"></canvas>
+                </div>
+              </div>
+              <div class="report-interpret report-interpret--dash">
+                <h4>Interprétation</h4>
+                <p>{{ sheet.captions.age_profile }}</p>
+              </div>
+            </div>
+            <div>
+              <h4 class="report-dash-subh">Coûts cumulés par département</h4>
+              <div class="report-chart-box report-chart-box--dash">
+                <div class="chart-canvas-wrap chart-canvas-wrap--dash-bar">
+                  <canvas id="maquetteChartDashCost"></canvas>
+                </div>
+              </div>
+              <div class="report-interpret report-interpret--dash">
+                <h4>Interprétation</h4>
+                <p>{{ sheet.captions.cost_dept }}</p>
+              </div>
+            </div>
+          </section>
+
           {% elif sheet.kind == 'patho_first' %}
           <h3 class="report-h-section">
             <span class="report-h-section__num">3</span>
@@ -238,14 +342,17 @@
               <h4>Note Clinique</h4>
               <p>
                 L'analyse de la typologie des séjours met en évidence les
-                pathologies les plus représentées sur le périmètre filtré, pour
-                prioriser les ressources cliniques et le triage.
+                pathologies les plus représentées sur l’ensemble des données,
+                pour prioriser les ressources cliniques et le triage.
               </p>
               <p>
                 Les volumes élevés sur certaines lignes diagnostiques peuvent
                 refléter la structure d'offre de soins et la démographie des
                 patients admis.
               </p>
+              {% if sheet.patho_note %}
+              <p class="report-note-clinique__data">{{ sheet.patho_note }}</p>
+              {% endif %}
             </div>
           </div>
           {% include 'report_maquette_patho_table.html' %} {% elif sheet.kind ==
@@ -383,7 +490,10 @@
     'labels': maquette_extras.monthly_labels,
     'admissions': maquette_extras.monthly_admissions,
     'patho_top5': maquette_extras.patho_top5,
-    'colors': chart_colors
+    'colors': chart_colors,
+    'dashboard_weekday': maquette_extras.dashboard_weekday,
+    'dashboard_age': maquette_extras.dashboard_age,
+    'dashboard_cost': maquette_extras.dashboard_cost
   } | tojson }}
 </script>
 <script>
@@ -482,8 +592,6 @@
       });
       var vals = payload.patho_top5.map(function (r) {
         return r.cases;
-
-        applyBarWidths();
       });
       var bg = payload.patho_top5.map(function (_, i) {
         return colors[i % colors.length];
@@ -508,6 +616,98 @@
         }),
       });
     }
+
+    var dw = payload.dashboard_weekday;
+    var cW = document.getElementById("maquetteChartDashWeekday");
+    if (cW && dw && dw.labels && dw.labels.length && dw.values) {
+      new Chart(cW, {
+        type: "line",
+        data: {
+          labels: dw.labels,
+          datasets: [
+            {
+              label: "Admissions",
+              data: dw.values,
+              borderColor: colors[0] || "#0D9488",
+              backgroundColor: (colors[0] || "#0D9488") + "22",
+              fill: true,
+              tension: 0.35,
+              borderWidth: 2,
+              pointRadius: 2,
+            },
+          ],
+        },
+        options: Object.assign({}, chartOpts, {
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 9 }, color: "#64748b", maxRotation: 0 },
+            },
+            y: {
+              grid: { color: "#e2e8f0" },
+              ticks: { font: { size: 9 }, color: "#64748b" },
+            },
+          },
+        }),
+      });
+    }
+
+    var dag = payload.dashboard_age;
+    var cA = document.getElementById("maquetteChartDashAge");
+    if (cA && dag && dag.labels && dag.labels.length && dag.values) {
+      new Chart(cA, {
+        type: "doughnut",
+        data: {
+          labels: dag.labels,
+          datasets: [
+            {
+              data: dag.values,
+              backgroundColor: colors.slice(0, dag.labels.length),
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: Object.assign({}, chartOpts, {
+          cutout: "58%",
+          plugins: { legend: { display: true, position: "bottom", labels: { boxWidth: 10, font: { size: 8 } } } },
+        }),
+      });
+    }
+
+    var dc = payload.dashboard_cost;
+    var cC = document.getElementById("maquetteChartDashCost");
+    if (cC && dc && dc.labels && dc.labels.length && dc.values) {
+      new Chart(cC, {
+        type: "bar",
+        data: {
+          labels: dc.labels,
+          datasets: [
+            {
+              label: "€",
+              data: dc.values,
+              backgroundColor: dc.labels.map(function (_, i) {
+                return colors[i % colors.length];
+              }),
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: Object.assign({}, chartOpts, {
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 8 }, color: "#64748b", maxRotation: 55, minRotation: 0 },
+            },
+            y: {
+              grid: { color: "#e2e8f0" },
+              ticks: { font: { size: 8 }, color: "#64748b" },
+            },
+          },
+        }),
+      });
+    }
+
+    applyBarWidths();
   })();
 </script>
 {% endblock %}
